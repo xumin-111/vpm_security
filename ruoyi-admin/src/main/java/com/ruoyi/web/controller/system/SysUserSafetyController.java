@@ -1,20 +1,5 @@
 package com.ruoyi.web.controller.system;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import com.ruoyi.system.domain.User;
-import org.apache.shiro.authz.annotation.RequiresPermissions;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Controller;
-import org.springframework.ui.ModelMap;
-import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.ResponseBody;
-import org.springframework.web.multipart.MultipartFile;
 import com.ruoyi.common.annotation.Log;
 import com.ruoyi.common.constant.UserConstants;
 import com.ruoyi.common.core.controller.BaseController;
@@ -25,9 +10,20 @@ import com.ruoyi.common.utils.poi.ExcelUtil;
 import com.ruoyi.framework.shiro.service.SysPasswordService;
 import com.ruoyi.framework.util.ShiroUtils;
 import com.ruoyi.system.domain.SysUser;
+import com.ruoyi.system.domain.User;
 import com.ruoyi.system.service.ISysPostService;
 import com.ruoyi.system.service.ISysRoleService;
 import com.ruoyi.system.service.ISysUserService;
+import org.apache.shiro.authz.annotation.RequiresPermissions;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.ModelMap;
+import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * 用户信息
@@ -35,35 +31,33 @@ import com.ruoyi.system.service.ISysUserService;
  * @author Maxj
  */
 @Controller
-@RequestMapping("/system/user")
-public class SysUserController extends BaseController {
+@RequestMapping("/system/userSafety")
+public class SysUserSafetyController extends BaseController {
     private String prefix = "system/user";
 
     @Autowired
     private ISysUserService userService;
 
     @Autowired
+    private ISysRoleService roleService;
+
+    @Autowired
+    private ISysPostService postService;
+
+    @Autowired
     private SysPasswordService passwordService;
 
-    /**
-     * 用户管理页面
-     */
-    @RequiresPermissions("system:user:view")
     @GetMapping()
     public String user() {
-        System.out.println("打开用户管理页面");
-        return prefix + "/user";
+        return prefix + "/userSafety";
     }
 
-    /**
-     * 展示用户数据列表
-     */
     @PostMapping("/list")
     @ResponseBody
     public TableDataInfo list(User user) {
         startPage();
         System.out.println("调用户数据获取接口");
-        System.out.println("如果user对象存在则调用单个的对象");
+        System.out.println("如果user对象存在则调用单个的对象===" + user.getUserId());
         List<User> list1 = new ArrayList<User>();
         if (user.getUserId() != null && !"".equals(user.getUserId())) {
             list1.add(user);
@@ -119,40 +113,47 @@ public class SysUserController extends BaseController {
     public String add(ModelMap mmap) {
         //mmap.put("roles", roleService.selectRoleAll());
         //mmap.put("posts", postService.selectPostAll());
-        System.out.println("打开新增用户页面");
+        System.out.println("11111");
         return prefix + "/add";
     }
 
     /**
      * 新增保存用户
      */
-    @Log(title = "新增用户", businessType = BusinessType.INSERT)
+    @RequiresPermissions("system:user:add")
+    @Log(title = "用户管理", businessType = BusinessType.INSERT)
     @PostMapping("/add")
     @ResponseBody
-    public AjaxResult addSave(@Validated User user) {
-        System.out.println("调判断用户是否存在接口");
-        if (true) {
-            return error("新增用户'" + user.getUserId() + "'失败，登录账号已存在");
+    public AjaxResult addSave(@Validated SysUser user) {
+        if (UserConstants.USER_NAME_NOT_UNIQUE.equals(userService.checkLoginNameUnique(user.getLoginName()))) {
+            return error("新增用户'" + user.getLoginName() + "'失败，登录账号已存在");
+        } else if (UserConstants.USER_PHONE_NOT_UNIQUE.equals(userService.checkPhoneUnique(user))) {
+            return error("新增用户'" + user.getLoginName() + "'失败，手机号码已存在");
+        } else if (UserConstants.USER_EMAIL_NOT_UNIQUE.equals(userService.checkEmailUnique(user))) {
+            return error("新增用户'" + user.getLoginName() + "'失败，邮箱账号已存在");
         }
-        System.out.println("调创建用户接口");
-        return toAjax(true);
+        user.setSalt(ShiroUtils.randomSalt());
+        user.setPassword(passwordService.encryptPassword(user.getLoginName(), user.getPassword(), user.getSalt()));
+        user.setCreateBy(ShiroUtils.getLoginName());
+
+        return toAjax(userService.insertUser(user));
     }
 
     /**
-     * 修改用户页面
+     * 修改用户
      */
     @GetMapping("/edit/{userId}")
     public String edit(@PathVariable("userId") String userId, ModelMap mmap) {
-        System.out.println("调获取用户信息接口");
         User user1 = new User();
         user1.setUserId("xumin");
         user1.setUserFullName("徐敏");
         user1.setStatus("1");
+        System.out.println("131443545user");
         mmap.put("user", user1);
         //mmap.put("user", userService.selectUserById(userId));
         //mmap.put("roles", roleService.selectRolesByUserId(userId));
         //mmap.put("posts", postService.selectPostsByUserId(userId));
-        return prefix + "/edit";
+        return prefix + "/editUserSafety";
     }
 
     /**
@@ -162,7 +163,7 @@ public class SysUserController extends BaseController {
     @PostMapping("/edit")
     @ResponseBody
     public AjaxResult editSave(@Validated User user) {
-        System.out.println("调修改保存用户接口");
+        System.out.println("调修改保存用户安全信息接口======" + user.getUserId());
         return toAjax(true);
     }
 
@@ -191,20 +192,13 @@ public class SysUserController extends BaseController {
         return error();
     }
 
-    /**
-     * 注销用户
-     *
-     * @param ids
-     * @return
-     */
     @RequiresPermissions("system:user:remove")
     @Log(title = "用户管理", businessType = BusinessType.DELETE)
     @PostMapping("/remove")
     @ResponseBody
     public AjaxResult remove(String ids) {
         try {
-            System.out.println("调获注销用户接口");
-            return toAjax(true);
+            return toAjax(userService.deleteUserByIds(ids));
         } catch (Exception e) {
             return error(e.getMessage());
         }

@@ -1,24 +1,25 @@
 <!DOCTYPE html>
 <html lang="zh" xmlns:th="http://www.thymeleaf.org">
 <head>
-    <th:block th:include="include :: header('角色创建')"/>
+    <th:block th:include="include :: header('项目创建')"/>
     <th:block th:include="include :: select2-css"/>
 </head>
 <body>
 <div class="main-content">
-    <form class="form-horizontal" id="form-role-edit">
-        <h4 class="form-header h4">角色创建</h4>
+    <form id="form-user-add" class="form-horizontal">
+        <input name="deptId" type="hidden" id="treeId"/>
+        <h4 class="form-header h4">项目创建</h4>
         <div class="row">
             <div class="col-sm-6">
                 <div class="form-group">
-                    <label class="col-sm-4 control-label">角色ID：</label>
+                    <label class="col-sm-4 control-label"><span style="color: red; ">*</span>项目编号：</label>
                     <div class="col-sm-8">
-                        <input name="roleId" placeholder="角色ID" class="form-control" type="text" maxlength="10">
+                        <input id="projectNumber" name="projectNumber" placeholder="项目编号" class="form-control"
+                               type="text" maxlength="30" required>
                     </div>
                 </div>
             </div>
         </div>
-
     </form>
 </div>
 
@@ -26,23 +27,28 @@
     <div class="col-sm-offset-5 col-sm-10">
         <button type="button" class="btn btn-sm btn-primary" onclick="submitHandler()"><i class="fa fa-check"></i>确 认
         </button>&nbsp;
-        <button type="button" class="btn btn-sm btn-danger" onclick="closeItem()"><i class="fa fa-reply-all"></i>重 置
+        <button type="button" class="btn btn-sm btn-danger" onclick="clean()"><i class="fa fa-reply-all"></i>重 置
         </button>
     </div>
 </div>
 <th:block th:include="include :: footer"/>
 <th:block th:include="include :: select2-js"/>
 <script>
-    var prefix = ctx + "system/role";
+    var prefix = ctx + "system/project";
 
     function submitHandler() {
         if ($.validate.form()) {
-            var data = $("#form-role-edit").serializeArray();
+            var data = $("#form-user-add").serializeArray();
             $.operate.save(prefix + "/add", data);
             //$.operate.saveTab(prefix + "/add", data);
         }
     }
-    
+
+    function clean() {
+        $("#projectNumber").textbox('setValue');
+    }
+
+
 </script>
 </body>
 </html>

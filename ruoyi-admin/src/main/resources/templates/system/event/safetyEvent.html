@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="zh" xmlns:th="http://www.thymeleaf.org" xmlns:shiro="http://www.pollix.at/thymeleaf/shiro">
+<head>
+    <th:block th:include="include :: header('用户审计')"/>
+    <th:block th:include="include :: layout-latest-css"/>
+    <th:block th:include="include :: ztree-css"/>
+</head>
+<body class="gray-bg">
+
+<div class="ui-layout-center">
+    <div class="container-div">
+        <div class="row">
+            <div class="col-sm-12 search-collapse">
+                <form class="form-horizontal" id="form-event-edit">
+                    <div class="select-list">
+                        <ul>
+                            <li>
+                                <label class="col-sm-4 control-label">开始时间：</label>
+                                <div class="col-sm-8">
+                                    <input id="beginDate" type="datetime-local" value=""/>
+                                </div>
+                            </li>
+                            <li>
+                                <label class="col-sm-4 control-label">结束时间：</label>
+                                <div class="col-sm-8">
+                                    <input id="endDate" type="datetime-local" value=""/>
+                                </div>
+                            </li>
+                            <li>
+                                <label class="col-sm-4 control-label">事件类型：</label>
+                                <div class="col-sm-8">
+                                    <select id="type" name="type" class="form-control">
+                                        <option value=""></option>
+                                        <option value="111111">111111</option>
+                                    </select>
+                                </div>
+                            </li>
+                            <li>
+                                <a class="btn btn-primary btn-rounded btn-sm" onclick="$.table.search()"><i
+                                        class="fa fa-search"></i>&nbsp;查询</a>
+                                <a class="btn btn-warning btn-rounded btn-sm" onclick="$.form.reset()"><i
+                                        class="fa fa-refresh"></i>&nbsp;重置</a>
+                            </li>
+                        </ul>
+                    </div>
+                </form>
+            </div>
+
+            <div class="btn-group-sm" id="toolbar" role="group">
+                <a class="btn btn-success" onclick="$.operate.addTab()">
+                    <i class="fa fa-plus"></i> 导出审计报告
+                </a>
+            </div>
+            <div class="col-sm-12 select-table table-striped">
+                <table id="bootstrap-table"></table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<th:block th:include="include :: footer"/>
+<th:block th:include="include :: layout-latest-js"/>
+<th:block th:include="include :: ztree-js"/>
+<script th:inline="javascript">
+    var prefix = ctx + "system/event";
+
+    $(function () {
+        var panehHidden = false;
+        if ($(this).width() < 769) {
+            panehHidden = true;
+        }
+        $('body').layout({initClosed: panehHidden, west__size: 185});
+        queryUserList();
+    });
+
+    function queryUserList() {
+        var options = {
+            url: prefix + "/safetyEvent",
+            columns: [{
+                checkbox: true
+            },
+                {
+                    field: 'userName',
+                    title: '用户帐号',
+                    sortable: true
+                },
+                {
+                    field: 'userSecret',
+                    title: '用户密级'
+                },
+                {
+                    field: 'ip',
+                    title: '操作IP',
+                },
+                {
+                    field: 'object',
+                    title: '操作对象',
+                },
+                {
+                    field: 'type',
+                    title: '操作类型',
+                },
+                {
+                    field: 'level',
+                    title: '对应等级',
+                },
+                {
+                    field: 'description',
+                    title: '详细描述'
+                }]
+        };
+        $.table.init(options);
+    }
+
+
+</script>
+</body>
+</html>

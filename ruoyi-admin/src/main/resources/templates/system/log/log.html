@@ -1,22 +1,23 @@
 <!DOCTYPE html>
 <html lang="zh" xmlns:th="http://www.thymeleaf.org">
 <head>
-    <th:block th:include="include :: header('组织创建')"/>
+    <th:block th:include="include :: header('日志转存')"/>
     <th:block th:include="include :: select2-css"/>
 </head>
 <body>
 <div class="main-content">
-    <form id="form-user-add" class="form-horizontal">
-        <input name="deptId" type="hidden" id="treeId"/>
-        <h4 class="form-header h4">组织创建</h4>
+    <form class="form-horizontal" id="form-log-edit" th:object="${log}">
+        <h4 class="form-header h4">日志转存</h4>
         <div class="row">
             <div class="col-sm-6">
                 <div class="form-group">
-                    <label class="col-sm-4 control-label"><span style="color: red; ">*</span>组织创建：</label>
+                    <label class="col-sm-4 control-label">当前审计日志周期：</label>
                     <div class="col-sm-8">
-                        <input name="departmentNumber" placeholder="组织编号" class="form-control" type="text"
-                               maxlength="30"
-                               required>
+                        <div class="input-group">
+                            <input name="relatively" placeholder="当前审计日志周期" class="form-control" type="text"
+                                   maxlength="10"
+                                   th:field="*{relatively}"><span class="input-group-addon">天</span>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -24,14 +25,23 @@
         <div class="row">
             <div class="col-sm-6">
                 <div class="form-group">
-                    <label class="col-sm-4 control-label">父组织编号：</label>
+                    <label class="col-sm-4 control-label">审计日志周期阈值：</label>
                     <div class="col-sm-8">
                         <div class="input-group">
-                            <input name="parentDepartmentNumber" onclick="selectDeptTree()" id="treeName" type="text"
-                                   placeholder="请选择归属部门" class="form-control">
-                            <span class="input-group-addon"><i class="fa fa-search"></i></span>
+                            <input name="relativelyAll" placeholder="审计日志周期阈值" class="form-control" type="text"
+                                   maxlength="10"><span class="input-group-addon">天</span>
                         </div>
                     </div>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-sm-6">
+                <div class="form-group">
+                    <label class="col-sm-4 control-label">审计日志转存：</label>
+                    <button type="button" class="btn btn-sm btn-primary" onclick="submitHandler()"><i
+                            class="fa fa-check"></i>转存日志
+                    </button>
                 </div>
             </div>
         </div>
@@ -49,29 +59,16 @@
 <th:block th:include="include :: footer"/>
 <th:block th:include="include :: select2-js"/>
 <script>
-    var prefix = ctx + "system/dept";
+    var prefix = ctx + "system/log";
 
     function submitHandler() {
         if ($.validate.form()) {
-            var data = $("#form-user-add").serializeArray();
+            var data = $("#form-log-edit").serializeArray();
             $.operate.save(prefix + "/add", data);
             //$.operate.saveTab(prefix + "/add", data);
         }
     }
 
-    /*选择部门树*/
-    function selectDeptTree() {
-        var treeId = $("#treeId").val();
-        var deptId = $.common.isEmpty(treeId) ? "100" : $("#treeId").val();
-        var url = ctx + "system/dept/selectDeptTree/" + deptId;
-        var options = {
-            title: '选择部门',
-            width: "380",
-            url: url,
-            callBack: doSubmit
-        };
-        $.modal.openOptions(options);
-    }
 
     function doSubmit(index, layero) {
         var tree = layero.find("iframe")[0].contentWindow.$._tree;

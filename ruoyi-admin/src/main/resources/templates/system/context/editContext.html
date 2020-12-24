@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="zh" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <th:block th:include="include :: header('创建上下文')"/>
+    <th:block th:include="include :: select2-css"/>
+</head>
+<body>
+<div class="main-content">
+    <form id="form-user-add" class="form-horizontal">
+        <input name="deptId" type="hidden" id="treeId"/>
+        <h4 class="form-header h4">创建上下文</h4>
+        <div class="row">
+            <div class="col-sm-6">
+                <div class="form-group">
+                    <label class="col-sm-4 control-label"><span style="color: red; ">*</span>项目编号：</label>
+                    <div class="col-sm-8">
+                        <select id="addProductId" name="addProductId" class="form-control">
+                            <option th:each="a:${project}" th:value="${a.projectNumber}"
+                                    th:text="${a.projectNumber}"></option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-sm-6">
+                <div class="form-group">
+                    <label class="col-sm-4 control-label"><span style="color: red; ">*</span>角色：</label>
+                    <div class="col-sm-8">
+                        <select id="addRole" name="addRole" class="form-control">
+                            <option th:each="b:${role}" th:value="${b.roleName}" th:text="${b.roleName}"></option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-sm-6">
+                <div class="form-group">
+                    <label class="col-sm-4 control-label"><span style="color: red; ">*</span>组织：</label>
+                    <div class="col-sm-8">
+                        <select id="addDept" name="addDept" class="form-control">
+                            <option th:each="c:${organization}" th:value="${c.departmentNumber}"
+                                    th:text="${c.departmentNumber}"></option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+
+<div class="row">
+    <div class="col-sm-offset-5 col-sm-10">
+        <button type="button" class="btn btn-sm btn-primary" onclick="submitHandler()"><i class="fa fa-check"></i>确 认
+        </button>&nbsp;
+        <button type="button" class="btn btn-sm btn-danger" onclick="closeItem()"><i class="fa fa-reply-all"></i>取 消
+        </button>
+    </div>
+</div>
+<th:block th:include="include :: footer"/>
+<th:block th:include="include :: select2-js"/>
+<script>
+    function submitHandler() {
+        if ($.validate.form()) {
+            var data = $("#form-user-add").serializeArray();
+            var status = $("input[id='status']").is(':checked') == true ? 0 : 1;
+            var roleIds = $.form.selectCheckeds("role");
+            var postIds = $.form.selectSelects("post");
+            data.push({"name": "status", "value": status});
+            data.push({"name": "roleIds", "value": roleIds});
+            data.push({"name": "postIds", "value": postIds});
+            $.operate.saveTab(prefix + "/add", data);
+        }
+    }
+
+    /*用户管理-新增-选择部门树*/
+    function selectDeptTree() {
+        var treeId = $("#treeId").val();
+        var deptId = $.common.isEmpty(treeId) ? "100" : $("#treeId").val();
+        var url = ctx + "system/dept/selectDeptTree/" + deptId;
+        var options = {
+            title: '选择部门',
+            width: "380",
+            url: url,
+            callBack: doSubmit
+        };
+        $.modal.openOptions(options);
+    }
+
+    function doSubmit(index, layero) {
+        var tree = layero.find("iframe")[0].contentWindow.$._tree;
+        if ($.tree.notAllowParents(tree)) {
+            var body = layer.getChildFrame('body', index);
+            $("#treeId").val(body.find('#treeId').val());
+            $("#treeName").val(body.find('#treeName').val());
+            layer.close(index);
+        }
+    }
+
+    $(function () {
+        $('#post').select2({
+            placeholder: "请选择岗位",
+            allowClear: true
+        });
+    })
+</script>
+</body>
+</html>

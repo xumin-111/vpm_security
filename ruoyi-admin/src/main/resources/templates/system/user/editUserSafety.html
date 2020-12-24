@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="zh" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <th:block th:include="include :: header('修改用户')"/>
+    <th:block th:include="include :: select2-css"/>
+</head>
+<body>
+<div class="main-content">
+    <form class="form-horizontal" id="form-user-edit" th:object="${user}">
+        <h4 class="form-header h4">基本信息</h4>
+        <div class="row">
+            <div class="col-sm-6">
+                <div class="form-group">
+                    <label class="col-sm-4 control-label"><span style="color: red; ">*</span>用户名（ID）：</label>
+                    <div class="col-sm-8">
+                        <input name="userId" placeholder="请输入用户名（ID）" class="form-control" type="text" maxlength="30"
+                               th:field="*{userId}" required>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-sm-6">
+                <div class="form-group">
+                    <label class="col-sm-4 control-label">新密码：</label>
+                    <div class="col-sm-8">
+                        <input name="userPassword" placeholder="新密码" class="form-control" type="text" maxlength="30">
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-sm-6">
+                <div class="form-group">
+                    <label class="col-sm-4 control-label">密级：</label>
+                    <div class="col-sm-8">
+                        <select id="userSecret" name="addProductId" class="form-control">
+                            <option value="111111">11112</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-sm-6">
+                <div class="form-group">
+                    <label class="col-sm-4 control-label">登录方式：</label>
+                    <div class="col-sm-8">
+                        <select id="loginType" name="addProductId" class="form-control">
+                            <option value="2222">2222</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+<div class="row">
+    <div class="col-sm-offset-5 col-sm-10">
+        <button type="button" class="btn btn-sm btn-primary" onclick="submitHandler()"><i class="fa fa-check"></i>确 认
+        </button>&nbsp;
+        <button type="button" class="btn btn-sm btn-danger" onclick="closeItem()"><i class="fa fa-reply-all"></i>关 闭
+        </button>
+    </div>
+</div>
+<th:block th:include="include :: footer"/>
+<th:block th:include="include :: select2-js"/>
+<script type="text/javascript">
+    var prefix = ctx + "system/userSafety";
+
+    function submitHandler() {
+        if ($.validate.form()) {
+            var data = $("#form-user-edit").serializeArray();
+            $.operate.saveTab(prefix + "/edit", data);
+        }
+    }
+
+    function doSubmit(index, layero) {
+        var tree = layero.find("iframe")[0].contentWindow.$._tree;
+        if ($.tree.notAllowParents(tree)) {
+            var body = layer.getChildFrame('body', index);
+            $("#treeId").val(body.find('#treeId').val());
+            $("#treeName").val(body.find('#treeName').val());
+            layer.close(index);
+        }
+    }
+
+</script>
+</body>
+</html>
