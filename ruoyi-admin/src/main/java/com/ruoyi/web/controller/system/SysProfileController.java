@@ -83,6 +83,7 @@ public class SysProfileController extends BaseController
         SysUser user = ShiroUtils.getSysUser();
         if (StringUtils.isNotEmpty(newPassword) && passwordService.matches(user, oldPassword))
         {
+            //todo dumpling: 重置 增加密码策略校验
             user.setSalt(ShiroUtils.randomSalt());
             user.setPassword(passwordService.encryptPassword(user.getLoginName(), newPassword, user.getSalt()));
             if (userService.resetUserPwd(user) > 0)

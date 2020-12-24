@@ -61,11 +61,16 @@
 				<!--</li>-->
                 <li th:each="menu : ${menus}">
                 <li class="nav nav-second-level collapse" th:each="menu : ${menus}">
-                    <a th:class="@{${menu.url != '' && menu.url != '#'} ? ${menu.target}} " th:href="@{${menu.url == ''} ? |#| : ${menu.url}}" style="color: #ffffff">
+   <!--                 <a th:class="@{${menu.url != '' && menu.url != '#'} ? ${menu.target}} " th:href="@{${menu.url == ''} ? |#| : ${menu.url}}" style="color: #ffffff">
                         <i class="fa fa-bar-chart-o" th:class="${menu.icon}"></i>
                     	<span class="nav-label" th:text="${menu.menuName}">一级菜单</span> 
-                    	<!--<span th:class="${menu.url == '' || menu.url == '#'} ? |fa arrow|"></span>-->
-                	</a>
+                    	<span th:class="${menu.url == '' || menu.url == '#'} ? |fa arrow|"></span>
+                	</a>-->
+                    <div class="firstLevelMenu" style="color: #ffffff">
+                        <i class="fa fa-bar-chart-o" th:class="${menu.icon}"></i>
+                        <span class="nav-label" th:text="${menu.menuName}">一级菜单</span>
+                        <!--<span th:class="${menu.url == '' || menu.url == '#'} ? |fa arrow|"></span>-->
+                    </div>
                     <ul class="nav nav-second-level collapse" style="display: block">
 						<li th:each="cmenu : ${menu.children}">
 							<a th:if="${#lists.isEmpty(cmenu.children)}" th:class="${cmenu.target == ''} ? |menuItem| : ${cmenu.target}" th:utext="${cmenu.menuName}" th:href="@{${cmenu.url}}">二级菜单</a>
@@ -239,16 +244,18 @@
                     
         <div class="row mainContent" id="content-main">
             <iframe class="RuoYi_iframe" name="iframe0" width="100%" height="100%" data-id="/system/main"
-                    th:src="@{/system/main}" frameborder="0" seamless></iframe>
+                    th:src="@{/system/user}" frameborder="0" seamless></iframe>
         </div>
         <div class="footer">
-            <!--<div class="pull-right">© [[${copyrightYear}]] RuoYi Copyright </div>-->
+            <div class="pull-right">© [[${copyrightYear}]] RuoYi Copyright </div>
         </div>
     </div>
     <!--右侧部分结束-->
 </div>
 <!-- 全局js -->
 <script th:src="@{/js/jquery.min.js}"></script>
+<script th:src="@{/js/sockjs.min.js}"></script>
+<script th:src="@{/js/notice.js}"></script>
 <script th:src="@{/js/bootstrap.min.js}"></script>
 <script th:src="@{/js/plugins/metisMenu/jquery.metisMenu.js}"></script>
 <script th:src="@{/js/plugins/slimscroll/jquery.slimscroll.min.js}"></script>
@@ -319,6 +326,26 @@ $(function() {
 	        applyPath(url);
 	    }
 	}
+	
+	function longPolling() {
+        $.ajax({
+            type : "POST",
+            url : ctx+"app/changePassword",
+            success : function(data) {
+                if(data != null && data){
+                    console.log("validate password expire error...."+data.result);
+                    var returnMsg = "<p>"+data+"</p>";
+                    $.show('提示信息',returnMsg,10000);
+                }
+                //longPolling();
+            },
+            error: function (error) {
+                console.log("validate password expire error....");// timeout
+            }
+
+        });
+    }
+    longPolling();
 });
 </script>
 </body>

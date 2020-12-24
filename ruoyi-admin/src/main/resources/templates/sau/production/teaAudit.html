@@ -29,7 +29,9 @@
 		</div>
 
 		<div class="btn-group-sm" id="toolbar" role="group">
-
+			<a class="btn btn-success" onclick="$.operate.add()">
+				<i class="fa fa-plus"></i> 新增
+			</a>
 		</div>
 
 		<div class="col-sm-12 select-table table-striped">
@@ -45,6 +47,7 @@
 	$(function() {
 		var options = {
 			url: prefix + "/selectWeeks",
+			createUrl: prefix + "/add",
 			updateUrl: prefix + "/edit/{id}",
 			sortName: "worklyId",
 			modalName: "周报",

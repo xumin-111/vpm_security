@@ -1,9 +1,6 @@
 package com.ruoyi.web.controller.system;
 
-import java.util.ArrayList;
 import java.util.List;
-
-import com.ruoyi.system.domain.User;
 import org.apache.shiro.authz.annotation.RequiresPermissions;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -31,23 +28,27 @@ import com.ruoyi.system.service.ISysUserService;
 
 /**
  * 用户信息
- *
+ * 
  * @author Maxj
  */
 @Controller
 @RequestMapping("/system/user")
-public class SysUserController extends BaseController {
+public class SysUserController extends BaseController
+{
     private String prefix = "system/user";
 
     @Autowired
     private ISysUserService userService;
 
     @Autowired
+    private ISysRoleService roleService;
+
+    @Autowired
+    private ISysPostService postService;
+
+    @Autowired
     private SysPasswordService passwordService;
 
-    /**
-     * 用户管理页面
-     */
     @RequiresPermissions("system:user:view")
     @GetMapping()
     public String user() {
@@ -56,8 +57,17 @@ public class SysUserController extends BaseController {
     }
 
     /**
-     * 展示用户数据列表
+     * add by dumpling
+     * @return
      */
+    //@RequiresPermissions("system:user:view")
+    @GetMapping("securityManage")
+    public String userSecurityManage()
+    {
+        return "system/userSecurityManage/user";
+    }
+
+    @RequiresPermissions("system:user:list")
     @PostMapping("/list")
     @ResponseBody
     public TableDataInfo list(User user) {
@@ -86,7 +96,8 @@ public class SysUserController extends BaseController {
     @RequiresPermissions("system:user:export")
     @PostMapping("/export")
     @ResponseBody
-    public AjaxResult export(SysUser user) {
+    public AjaxResult export(SysUser user)
+    {
         List<SysUser> list = userService.selectUserList(user);
         ExcelUtil<SysUser> util = new ExcelUtil<SysUser>(SysUser.class);
         return util.exportExcel(list, "用户数据");
@@ -96,7 +107,8 @@ public class SysUserController extends BaseController {
     @RequiresPermissions("system:user:import")
     @PostMapping("/importData")
     @ResponseBody
-    public AjaxResult importData(MultipartFile file, boolean updateSupport) throws Exception {
+    public AjaxResult importData(MultipartFile file, boolean updateSupport) throws Exception
+    {
         ExcelUtil<SysUser> util = new ExcelUtil<SysUser>(SysUser.class);
         List<SysUser> userList = util.importExcel(file.getInputStream());
         String operName = ShiroUtils.getSysUser().getLoginName();
@@ -107,7 +119,8 @@ public class SysUserController extends BaseController {
     @RequiresPermissions("system:user:view")
     @GetMapping("/importTemplate")
     @ResponseBody
-    public AjaxResult importTemplate() {
+    public AjaxResult importTemplate()
+    {
         ExcelUtil<SysUser> util = new ExcelUtil<SysUser>(SysUser.class);
         return util.importTemplateExcel("用户数据");
     }
@@ -169,7 +182,8 @@ public class SysUserController extends BaseController {
     @RequiresPermissions("system:user:resetPwd")
     @Log(title = "重置密码", businessType = BusinessType.UPDATE)
     @GetMapping("/resetPwd/{userId}")
-    public String resetPwd(@PathVariable("userId") Long userId, ModelMap mmap) {
+    public String resetPwd(@PathVariable("userId") Long userId, ModelMap mmap)
+    {
         mmap.put("user", userService.selectUserById(userId));
         return prefix + "/resetPwd";
     }
@@ -178,12 +192,15 @@ public class SysUserController extends BaseController {
     @Log(title = "重置密码", businessType = BusinessType.UPDATE)
     @PostMapping("/resetPwd")
     @ResponseBody
-    public AjaxResult resetPwdSave(SysUser user) {
+    public AjaxResult resetPwdSave(SysUser user)
+    {
         userService.checkUserAllowed(user);
         user.setSalt(ShiroUtils.randomSalt());
         user.setPassword(passwordService.encryptPassword(user.getLoginName(), user.getPassword(), user.getSalt()));
-        if (userService.resetUserPwd(user) > 0) {
-            if (ShiroUtils.getUserId() == user.getUserId()) {
+        if (userService.resetUserPwd(user) > 0)
+        {
+            if (ShiroUtils.getUserId() == user.getUserId())
+            {
                 ShiroUtils.setSysUser(userService.selectUserById(user.getUserId()));
             }
             return success();
@@ -215,7 +232,8 @@ public class SysUserController extends BaseController {
      */
     @PostMapping("/checkLoginNameUnique")
     @ResponseBody
-    public String checkLoginNameUnique(SysUser user) {
+    public String checkLoginNameUnique(SysUser user)
+    {
         return userService.checkLoginNameUnique(user.getLoginName());
     }
 
@@ -224,7 +242,8 @@ public class SysUserController extends BaseController {
      */
     @PostMapping("/checkPhoneUnique")
     @ResponseBody
-    public String checkPhoneUnique(SysUser user) {
+    public String checkPhoneUnique(SysUser user)
+    {
         return userService.checkPhoneUnique(user);
     }
 
@@ -233,7 +252,8 @@ public class SysUserController extends BaseController {
      */
     @PostMapping("/checkEmailUnique")
     @ResponseBody
-    public String checkEmailUnique(SysUser user) {
+    public String checkEmailUnique(SysUser user)
+    {
         return userService.checkEmailUnique(user);
     }
 
@@ -244,7 +264,8 @@ public class SysUserController extends BaseController {
     @RequiresPermissions("system:user:edit")
     @PostMapping("/changeStatus")
     @ResponseBody
-    public AjaxResult changeStatus(SysUser user) {
+    public AjaxResult changeStatus(SysUser user)
+    {
         userService.checkUserAllowed(user);
         return toAjax(userService.changeStatus(user));
     }

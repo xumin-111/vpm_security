@@ -41,6 +41,12 @@ a:focus {
     padding: 14px 20px 14px 25px;
 }
 
+.firstLevelMenu {
+    color: #a7b1c2;
+    font-weight: 600;
+    padding: 14px 20px 14px 25px;
+}
+
 .nav li>a {
     /*display: block;*/
     /*white-space: nowrap;*/

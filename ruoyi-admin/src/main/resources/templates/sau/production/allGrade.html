@@ -1,133 +1,92 @@
 <!DOCTYPE html>
-<html lang="zh" xmlns:th="http://www.thymeleaf.org" xmlns:shiro="http://www.pollix.at/thymeleaf/shiro">
+<html lang="zh" xmlns:th="http://www.thymeleaf.org" >
 <head>
-	<th:block th:include="include :: header('生产实习成绩统计')" />
+	<th:block th:include="include :: header('密码策略')" />
 </head>
-<body class="gray-bg">
-<div class="container-div">
+<body class="white-bg">
+<div class="wrapper wrapper-content animated fadeInRight ibox-content">
+	<form class="form-horizontal m" id="form-password-add" th:object="${policy}">
+		<input id="id" name="id"  type="hidden" th:field="*{id}" />
+		<div class="form-group">
+			<label class="col-sm-3 control-label ">最短密码长度：</label>
+			<div class="col-sm-3">
+				<input class="form-control" type="text" name="minPsLength" id="minPsLength" th:field="*{minPsLength}" required>
+			</div>
+		</div>
+		<div class="form-group">
+			<label class="col-sm-3 control-label">最长密码长度：</label>
+			<div class="col-sm-3">
+				<input class="form-control" type="text" name="maxPsLength" id="maxPsLength" th:field="*{maxPsLength}" required>
+			</div>
+		</div>
+		<div class="form-group">
+			<label class="col-sm-3 control-label">密码更换周期：</label>
+			<div class="col-sm-3">
+				<input class="form-control" type="text" name="changePeriod" id="changePeriod" th:field="*{changePeriod}" required>
+			</div>
+			<label class="control-label">天</label>
+		</div>
+		<div class="form-group">
+			<label class="col-sm-3 control-label">允许密码错误次数：</label>
+			<div class="col-sm-3">
+				<input class="form-control" type="text" name="allowWrongCount" id="allowWrongCount" th:field="*{allowWrongCount}" required>
+			</div>
+			<label class="control-label">次</label>
+		</div>
+		<div class="form-group">
+			<label class="col-sm-3 control-label">密码复杂程度：</label>
+			<div class="col-sm-3">
+				<select name="complexity" class="form-control m-b">
+					<!--<option value="">-&#45;&#45;请选择-&#45;&#45;</option>-->
+					<option value="1" th:field="*{complexity}">复杂</option>
+				</select>
+			</div>
+		</div>
+	</form>
 	<div class="row">
-		<div class="col-sm-12 search-collapse">
-			<form id="role-form">
-				<div class="select-list">
-					<ul>
-						<li>
-							编号：<input type="text" name="stuProdId" style="width:140px"/>
-						</li>
-						<li>
-							名称：<input type="text" name="productionName" style="width:140px"/>
-						</li>
-						<li>
-							学生姓名：<input type="text" name="studentName" style="width:140px"/>
-						</li>
-						<li>
-							实习单位：<input type="text" name="productionCompany" style="width:140px"/>
-						</li>
-						<li>
-							<a class="btn btn-primary btn-rounded btn-sm" onclick="$.table.search()"><i class="fa fa-search"></i>&nbsp;搜索</a>
-							<a class="btn btn-warning btn-rounded btn-sm" onclick="$.form.reset()"><i class="fa fa-refresh"></i>&nbsp;重置</a>
-						</li>
-					</ul>
-				</div>
-			</form>
-		</div>
-
-		<div class="btn-group-sm" id="toolbar" role="group">
-
-		</div>
-
-		<div class="col-sm-12 select-table table-striped">
-			<table id="bootstrap-table"></table>
+		<div class="col-sm-offset-4 col-sm-10">
+			<button type="button" class="btn btn-sm btn-primary" onclick="submitHandler()"><i class="fa fa-check"></i>确 定 </button>&nbsp;
+			<button type="button" class="btn btn-sm btn-danger" onclick="closeItem()"><i class="fa fa-reply-all"></i>取 消 </button>
 		</div>
 	</div>
 </div>
 <th:block th:include="include :: footer" />
-<script th:inline="javascript">
-	var prefix = ctx + "sau/allgrade";
+<script type="text/javascript">
+	var prefix = ctx + "system/password";
 
-	$(function() {
-		var options = {
-			url: prefix + "/selectAllGrade",
-			sortName: "stuProdId",
-			modalName: "生产实习",
-			columns: [
-				{
-					field: 'stuProdId',
-					title: '编号'
-				},
-				{
-					field: 'productionName',
-					cellStyle: formatTableUnit,
-					formatter: paramsMatter,
-					title: '名称'
-				},
-				{
-					field: 'productionBegin',
-					title: '开始时间'
-				},
-				{
-					field: 'productionEnd',
-					title: '结束时间'
-				},
-				{
-					field: 'studentId',
-					title: '学生学号'
-				},
-				{
-					field: 'studentName',
-					title: '学生姓名'
-				},
-				{
-					field: 'productionCompany',
-					cellStyle: formatTableUnit,
-					formatter: paramsMatter,
-					title: '实习单位名称'
-				},
-				{
-					field: 'productionIntro',
-					cellStyle: formatTableUnit,
-					formatter: paramsMatter,
-					title: '实习单位简介'
-				},
-				{
-					field: 'pacificScore',
-					title: '周报成绩'
-				},
-				{
-					field: 'examScore',
-					title: '总结成绩'
-				},
-				{
-					field: 'score',
-					title: '总成绩',
-					sortable: true
-				},
-				{
-					field: 'ownScore',
-					title: '最终成绩'
+	$("#form-password-add").validate({
+		onkeyup: false,
+		rules:{
+			dictType:{
+				minlength: 5,
+				remote: {
+					url: prefix + "/checkDictTypeUnique",
+					type: "post",
+					dataType: "json",
+					data: {
+						name : function() {
+							return $.common.trim($("#dictType").val());
+						}
+					},
+					dataFilter: function(data, type) {
+						return $.validate.unique(data);
+					}
 				}
-				]
-		};
-		$.table.init(options);
+			},
+		},
+		messages: {
+			"dictType": {
+				remote: "该字典类型已经存在"
+			}
+		},
+		focusCleanup: true
 	});
 
-	function paramsMatter(value, row, index) {
-		var span = document.createElement("span");
-		span.setAttribute("title", (typeof(value) == "undefined") ? "-" : value);
-		span.innerHTML = (typeof(value) == "undefined") ? "-" : value;
-		return span.outerHTML;
-	}
-	//td宽度以及内容超过宽度隐藏
-	function formatTableUnit(value, row, index) {
-		return {
-			css: {
-				"white-space": "nowrap",
-				"text-overflow": "ellipsis",
-				"overflow": "hidden",
-				"max-width": "60px"
-			}
+	function submitHandler() {
+		if ($.validate.form()) {
+			$.operate.save(prefix + "/add", $('#form-password-add').serialize());
 		}
 	}
-
 </script>
 </body>
 </html>
