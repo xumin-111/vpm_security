@@ -2,14 +2,16 @@ package com.ruoyi.web.controller.sau;
 
 import com.ruoyi.common.core.controller.BaseController;
 import com.ruoyi.common.core.page.TableDataInfo;
-import com.ruoyi.framework.util.ShiroUtils;
 import com.ruoyi.sau.service.MyApplyService;
 import com.ruoyi.sau.service.MyProdService;
+import com.ruoyi.system.domain.SysPasswordPolicy;
+import com.ruoyi.system.service.ISysPasswordPolicyService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.apache.shiro.authz.annotation.RequiresPermissions;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
+import org.springframework.ui.ModelMap;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -19,7 +21,7 @@ import java.util.Map;
  * @author Maxj
  */
 @Controller
-@Api("教师端生产实习成绩统计")
+@Api("密码策略管理")
 @RequestMapping("/sau/allgrade")
 public class AllGradeController extends BaseController {
 
@@ -31,9 +33,13 @@ public class AllGradeController extends BaseController {
     @Autowired
     private MyProdService myProdService;
 
+    @Autowired
+    private ISysPasswordPolicyService iSysPasswordPolicyService;
+
     @RequiresPermissions("system:allgrade:view")
     @GetMapping()
-    public String allGrade(){
+    public String allGrade(ModelMap mmap){
+        mmap.put("policy", iSysPasswordPolicyService.checkPasswordPolicyUnique(new SysPasswordPolicy()));
         return prefix + "/allGrade";
     }
 

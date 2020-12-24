@@ -1,13 +1,5 @@
 package com.ruoyi.framework.shiro.service;
 
-import java.util.concurrent.atomic.AtomicInteger;
-import javax.annotation.PostConstruct;
-import org.apache.shiro.cache.Cache;
-import org.apache.shiro.cache.CacheManager;
-import org.apache.shiro.crypto.hash.Md5Hash;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Component;
 import com.ruoyi.common.constant.Constants;
 import com.ruoyi.common.constant.ShiroConstants;
 import com.ruoyi.common.exception.user.UserPasswordNotMatchException;
@@ -16,6 +8,16 @@ import com.ruoyi.common.utils.MessageUtils;
 import com.ruoyi.framework.manager.AsyncManager;
 import com.ruoyi.framework.manager.factory.AsyncFactory;
 import com.ruoyi.system.domain.SysUser;
+import com.ruoyi.system.service.ISysPasswordPolicyService;
+import com.ruoyi.system.service.ISysUserService;
+import org.apache.shiro.cache.Cache;
+import org.apache.shiro.cache.CacheManager;
+import org.apache.shiro.crypto.hash.Md5Hash;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
+import javax.annotation.PostConstruct;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * 登录密码方法
@@ -30,8 +32,12 @@ public class SysPasswordService
 
     private Cache<String, AtomicInteger> loginRecordCache;
 
-    @Value(value = "${user.password.maxRetryCount}")
-    private String maxRetryCount;
+    @Autowired
+    private ISysPasswordPolicyService iSysPasswordPolicyService;
+
+    @Autowired
+    private ISysUserService userService;
+
 
     @PostConstruct
     public void init()
@@ -41,6 +47,9 @@ public class SysPasswordService
 
     public void validate(SysUser user, String password)
     {
+        Integer maxRetryCount = iSysPasswordPolicyService.getMaxRetryCount();
+
+
         String loginName = user.getLoginName();
 
         AtomicInteger retryCount = loginRecordCache.get(loginName);
@@ -50,8 +59,14 @@ public class SysPasswordService
             retryCount = new AtomicInteger(0);
             loginRecordCache.put(loginName, retryCount);
         }
-        if (retryCount.incrementAndGet() > Integer.valueOf(maxRetryCount).intValue())
+        if (retryCount.incrementAndGet() > maxRetryCount)
         {
+            //锁定用户，需要安全管理员解锁
+            SysUser lockUser = new SysUser();
+            lockUser.setUserId(user.getUserId());
+            lockUser.setStatus("1");
+            userService.changeStatus(lockUser);
+
             AsyncManager.me().execute(AsyncFactory.recordLogininfor(loginName, Constants.LOGIN_FAIL, MessageUtils.message("user.password.retry.limit.exceed", maxRetryCount)));
             throw new UserPasswordRetryLimitExceedException(Integer.valueOf(maxRetryCount).intValue());
         }

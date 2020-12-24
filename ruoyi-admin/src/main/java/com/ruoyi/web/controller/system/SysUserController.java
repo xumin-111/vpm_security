@@ -1,17 +1,5 @@
 package com.ruoyi.web.controller.system;
 
-import java.util.List;
-import org.apache.shiro.authz.annotation.RequiresPermissions;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Controller;
-import org.springframework.ui.ModelMap;
-import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.ResponseBody;
-import org.springframework.web.multipart.MultipartFile;
 import com.ruoyi.common.annotation.Log;
 import com.ruoyi.common.constant.UserConstants;
 import com.ruoyi.common.core.controller.BaseController;
@@ -25,6 +13,17 @@ import com.ruoyi.system.domain.SysUser;
 import com.ruoyi.system.service.ISysPostService;
 import com.ruoyi.system.service.ISysRoleService;
 import com.ruoyi.system.service.ISysUserService;
+import org.apache.shiro.authz.annotation.RequiresPermissions;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.ModelMap;
+import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * 用户信息
@@ -54,6 +53,17 @@ public class SysUserController extends BaseController
     public String user()
     {
         return prefix + "/user";
+    }
+
+    /**
+     * add by dumpling
+     * @return
+     */
+    //@RequiresPermissions("system:user:view")
+    @GetMapping("securityManage")
+    public String userSecurityManage()
+    {
+        return "system/userSecurityManage/user";
     }
 
     @RequiresPermissions("system:user:list")
@@ -148,6 +158,23 @@ public class SysUserController extends BaseController
         mmap.put("roles", roleService.selectRolesByUserId(userId));
         mmap.put("posts", postService.selectPostsByUserId(userId));
         return prefix + "/edit";
+    }
+
+    /**
+     * 修改用户
+     */
+    @GetMapping("/manageEdit/{userId}")
+    public String manageEdit(@PathVariable("userId") Long userId, ModelMap mmap)
+    {
+        //todo dumpling 查询用户的信息
+        Map map = new HashMap<>();
+        SysUser user = new SysUser();
+        user.setUserId(userId);
+        user.setUserSecurity(0);
+        user.setLoginType(0);
+        mmap.put("user", user);
+        //mmap.put("user", userService.selectUserById(userId));
+        return "system/userSecurityManage/edit";
     }
 
     /**
