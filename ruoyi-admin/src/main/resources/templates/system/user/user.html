@@ -7,7 +7,6 @@
 </head>
 <body class="gray-bg">
 
-<<<<<<< HEAD
 <div class="ui-layout-center">
     <div class="container-div">
         <div class="row">
@@ -31,18 +30,6 @@
                     </div>
                 </form>
             </div>
-            =======
-            $(function() {
-            var panehHidden = false;
-            if ($(this).width() < 769) {
-            panehHidden = true;
-            }
-            $('body').layout({ initClosed: panehHidden, west__size: 185 });
-            queryUserList();
-            queryDeptTree();
-
-            });
-            >>>>>>> origin/master
 
             <div class="btn-group-sm" id="toolbar" role="group">
                 <a class="btn btn-success" onclick="createUser()">
@@ -76,6 +63,7 @@
         }
         $('body').layout({initClosed: panehHidden, west__size: 185});
         queryUserList();
+        queryDeptTree();
     });
 
     function queryUserList() {
