@@ -6,16 +6,12 @@
 </head>
 <body>
 <div class="main-content">
-    <form id="form-access-add" class="form-horizontal">
-        <!--<input name="deptId" type="hidden" id="treeId"/>-->
+    <form id="form-access-add" class="form-horizontal" th:object="${access}">
+        <input name="contextId" type="hidden" id="contextId" th:field="*{contextId}" />
         <div class="form-group">
             <label class="col-sm-3 control-label">* 上下文Id：</label>
             <div class="col-sm-8">
-                <select class="form-control" name="contextId" id="contextId"  required>
-                    <option value="0">内部</option>
-                    <option value="1">一般</option>
-                    <option value="2">重要</option>
-                </select>
+                <input name="contextName" readonly="true" class="form-control" type="text" maxlength="30" th:field="*{contextName}" required>
             </div>
         </div>
         <div class="form-group">
@@ -41,18 +37,18 @@
                     <option th:each="dept : ${type}" th:text="${dept.deptName}" th:value="${dept.deptId}"></option>
                 </select>
             </div>
-    </div>
+        </div>
     </form>
 </div>
 
-<div class="row">
+<!--<div class="row">
     <div class="col-sm-offset-5 col-sm-10">
         <button type="button" class="btn btn-sm btn-primary" onclick="submitHandler()"><i class="fa fa-check"></i>确 认
         </button>&nbsp;
         <button type="button" class="btn btn-sm btn-danger" onclick="closeItem()"><i class="fa fa-reply-all"></i>取 消
         </button>
     </div>
-</div>
+</div>-->
 <th:block th:include="include :: footer"/>
 <th:block th:include="include :: select2-js"/>
 <script>
@@ -69,7 +65,7 @@
         }
     }
 
-    /*用户管理-新增-选择部门树*/
+ /*   /!*用户管理-新增-选择部门树*!/
     function selectDeptTree() {
         var treeId = $("#treeId").val();
         var deptId = $.common.isEmpty(treeId) ? "100" : $("#treeId").val();
@@ -98,7 +94,7 @@
             placeholder: "请选择岗位",
             allowClear: true
         });
-    })
+    })*/
 </script>
 </body>
 </html>

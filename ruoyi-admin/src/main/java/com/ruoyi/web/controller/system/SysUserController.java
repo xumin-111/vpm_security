@@ -21,8 +21,9 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * 用户信息
@@ -68,8 +69,8 @@ public class SysUserController extends BaseController
     @RequiresPermissions("system:user:list")
     @PostMapping("/list")
     @ResponseBody
-    public TableDataInfo list(User user) {
-        startPage();
+    public TableDataInfo list(SysUser user) {
+        /*startPage();
         System.out.println("调用户数据获取接口");
         System.out.println("如果user对象存在则调用单个的对象");
         List<User> list1 = new ArrayList<User>();
@@ -87,7 +88,10 @@ public class SysUserController extends BaseController
             list1.add(user1);
             list1.add(user2);
         }
-        return getDataTable(list1);
+        return getDataTable(list1);*/
+        startPage();
+        List<SysUser> list = userService.selectUserList(user);
+        return getDataTable(list);
     }
 
     @Log(title = "用户管理", businessType = BusinessType.EXPORT)
@@ -164,6 +168,23 @@ public class SysUserController extends BaseController
         //mmap.put("roles", roleService.selectRolesByUserId(userId));
         //mmap.put("posts", postService.selectPostsByUserId(userId));
         return prefix + "/edit";
+    }
+
+    /**
+     * 修改用户
+     */
+    @GetMapping("/manageEdit/{userId}")
+    public String manageEdit(@PathVariable("userId") Long userId, ModelMap mmap)
+    {
+        //todo dumpling 查询用户的信息
+        Map map = new HashMap<>();
+        SysUser user = new SysUser();
+        user.setUserId(userId);
+        user.setUserSecurity(0);
+        user.setLoginType(0);
+        mmap.put("user", user);
+        //mmap.put("user", userService.selectUserById(userId));
+        return "system/userSecurityManage/edit";
     }
 
     /**

@@ -15,7 +15,7 @@
                     <div class="select-list">
                         <ul>
                             <li>
-                                上下文ID：<input type="text" name="contextId"/>
+                                上下文ID：<input type="text" name="contextName"/>
                             </li>
                             <li>
                                 <a class="btn btn-primary btn-rounded btn-sm" onclick="$.table.search()"><i
@@ -32,21 +32,21 @@
                 <a class="btn btn-success" onclick="createContext()">
                     <i class="fa fa-plus"></i> 创建上下文
                 </a>
-                <a class="btn btn-primary single disabled" onclick="editContext()"
+                <!--<a class="btn btn-primary single disabled" onclick="editContext()"
                    shiro:hasPermission="system:user:edit">
                     <i class="fa fa-edit"></i> 修改上下文
-                </a>
+                </a>-->
                 <a class="btn btn-success" onclick="createAccess()">
                     <i class="fa fa-plus"></i> 创建权限
                 </a>
-                <a class="btn btn-primary single disabled" onclick="editAccess()"
+                <!--<a class="btn btn-primary single disabled" onclick="editAccess()"
                    shiro:hasPermission="system:user:edit">
                     <i class="fa fa-edit"></i> 修改权限
                 </a>
                 <a class="btn btn-danger multiple disabled" onclick="deleteAccess()"
                    shiro:hasPermission="system:user:remove">
                     <i class="fa fa-remove"></i> 删除权限
-                </a>
+                </a>-->
             </div>
 
             <div class="col-sm-12 select-table table-striped">
@@ -72,7 +72,7 @@
         }
         $('body').layout({initClosed: panehHidden, west__size: 185});
         queryUserList();
-        queryDeptTree();
+        //queryDeptTree();
     });
 
     function queryUserList() {
@@ -92,15 +92,15 @@
                     sortable: true
                 },
                 {
-                    field: 'contextType',
+                    field: 'accessType',
                     title: '类型',
                 },
                 {
-                    field: 'contextAction',
+                    field: 'actionGroup',
                     title: '操作/操作组'
                 },
                 {
-                    field: 'contextData',
+                    field: 'dataGroup',
                     title: '数据组'
                 },
                 {
@@ -109,6 +109,7 @@
                     formatter: function (value, row, index) {
                         var actions = [];
                         actions.push('<a class="btn btn-success btn-xs ' + editFlag + '" href="javascript:void(0)" onclick="editContext(\'' + row.contextId + '\')"><i class="fa fa-edit"></i>修改上下文</a> ');
+                        actions.push('<a class="btn btn-primary btn-xs ' + editFlag + '" href="javascript:void(0)" onclick="createAccessForContext(\'' + row.contextId + '\')"><i class="fa fa-edit"></i>创建权限</a> ');
                         actions.push('<a class="btn btn-danger btn-xs ' + removeFlag + '" href="javascript:void(0)" onclick="editAccess(\'' + row.contextId + '\')"><i class="fa fa-edit"></i>修改权限</a> ');
                         return actions.join('');
                     }
@@ -120,25 +121,33 @@
     function createContext() {
         table.set();
         var url = prefix + "/add"
-        $.modal.openTab("创建上下文", url);
+        $.modal.open("创建上下文", url);
+
+        //$.operate.add();
     }
 
-    function editContext() {
+    function editContext(contextId) {
         table.set();
-        var url = prefix + "/edit"
-        $.modal.openTab("修改上下文", url);
+        var url = prefix + "/editContext/"+contextId
+        $.modal.open("修改上下文", url);
     }
 
     function createAccess() {
         table.set();
-        var url = prefix + "/createAccess"
-        $.modal.openTab("创建权限", url);
+        var url = prefix + "/addAccess"
+        $.modal.open("创建权限", url);
     }
 
-    function editAccess() {
+    function createAccessForContext(contextId) {
         table.set();
-        var url = prefix + "/edit"
-        $.modal.openTab("修改权限", url);
+        var url = prefix + "/createAccess/"+contextId
+        $.modal.open("创建权限", url);
+    }
+
+    function editAccess(contextId) {
+        table.set();
+        var url = prefix + "/editAccess/"+contextId
+        $.modal.open("修改权限", url);
     }
 
     function deleteAccess() {

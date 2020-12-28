@@ -8,7 +8,7 @@
 <div class="main-content">
     <form id="form-user-add" class="form-horizontal">
         <input name="deptId" type="hidden" id="treeId"/>
-        <h4 class="form-header h4">创建上下文</h4>
+        <!--<h4 class="form-header h4">创建上下文</h4>-->
         <div class="row">
             <div class="col-sm-6">
                 <div class="form-group">
@@ -51,30 +51,30 @@
             </div>
         </div>
         <div class="row">
-            <div class="col-sm-6">
+            <div class="col-sm-8">
                 <div class="form-group">
-                    <label class="col-sm-4 control-label">增加人员：</label>
+                    <label class="col-sm-3 control-label">增加人员：</label>
                     <div class="col-sm-8">
-                        <div class="input-group">
-                            <textarea class="form-control" type="text" name="addUser" id="addUser"></textarea>
-                            <span class="input-group-addon">
-                                <button type="button" class="btn btn-sm btn-primary" onclick="addUser()">
-                                    <i class="fa fa-check"></i>添加人员</button>&nbsp;
-                            </span>
-                        </div>
+                    <div class="input-group">
+                        <textarea class="form-control" type="text" name="addUser" id="addUser" readonly style="background-color:#ffffff"></textarea>
+                        <span class="input-group-addon" style="border: 0px">
+                            <button type="button" class="btn btn-sm btn-primary" onclick="selectDeptTree()">
+                                <i class="fa fa-check"></i>添加人员</button>&nbsp;
+                        </span>
                     </div>
+                </div>
                 </div>
             </div>
         </div>
         <div class="row">
-            <div class="col-sm-6">
+            <div class="col-sm-8">
                 <div class="form-group">
-                    <label class="col-sm-4 control-label">移除人员：</label>
+                    <label class="col-sm-3 control-label">移除人员：</label>
                     <div class="col-sm-8">
                         <div class="input-group">
-                            <textarea class="form-control" type="text" name="removeUser" id="removeUser"></textarea>
-                            <span class="input-group-addon">
-                                <button type="button" class="btn btn-sm btn-primary" onclick="removeUser()">
+                            <textarea class="form-control" type="text" name="removeUser" id="removeUser" readonly style="background-color:#ffffff"></textarea>
+                            <span class="input-group-addon" style="border: 0px">
+                                <button type="button" class="btn btn-sm btn-primary" onclick="selectDeptTree()">
                                     <i class="fa fa-check"></i>添加人员</button>&nbsp;
                             </span>
                         </div>
@@ -85,18 +85,19 @@
     </form>
 </div>
 
-<div class="row">
+<!--<div class="row">
     <div class="col-sm-offset-5 col-sm-10">
         <button type="button" class="btn btn-sm btn-primary" onclick="submitHandler()"><i class="fa fa-check"></i>确 认
         </button>&nbsp;
         <button type="button" class="btn btn-sm btn-danger" onclick="closeItem()"><i class="fa fa-reply-all"></i>取 消
         </button>
     </div>
-</div>
+</div>-->
 <th:block th:include="include :: footer"/>
 <th:block th:include="include :: select2-js"/>
 <script>
     function submitHandler() {
+        console.log("xcvxcv");
         if ($.validate.form()) {
             var data = $("#form-user-add").serializeArray();
             var status = $("input[id='status']").is(':checked') == true ? 0 : 1;
@@ -109,13 +110,13 @@
         }
     }
 
-    /*用户管理-新增-选择部门树*/
+    /*todo dumpling 上下文管理-添加,移除人员*/
     function selectDeptTree() {
         var treeId = $("#treeId").val();
         var deptId = $.common.isEmpty(treeId) ? "100" : $("#treeId").val();
         var url = ctx + "system/dept/selectDeptTree/" + deptId;
         var options = {
-            title: '选择部门',
+            title: '选择人员',
             width: "380",
             url: url,
             callBack: doSubmit
@@ -133,12 +134,12 @@
         }
     }
 
-    $(function () {
+    /*$(function () {
         $('#post').select2({
             placeholder: "请选择岗位",
             allowClear: true
         });
-    })
+    })*/
 </script>
 </body>
 </html>

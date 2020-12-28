@@ -1,11 +1,19 @@
 package com.ruoyi.system.domain;
 
+import java.io.Serializable;
+
 /**
  * @author xumin
  * @create 2020-12-22 10:09
+ * @desc 权限实体类
  */
 
-public class Access {
+public class Access implements Serializable {
+
+    /**
+     * 主键id
+     */
+    private String accessId;
 
     /**
      * 上下文ID
@@ -20,33 +28,26 @@ public class Access {
     /**
      * 类型
      */
-    private String contextType;
+    private String accessType;
 
     /**
      * 操作/操作组
      */
-    private String contextAction;
+    private String actionGroup;
 
     /**
      * 数据组
      */
-    private String contextData;
+    private String dataGroup;
 
-    /**
-     * 项目编号
-     */
-    private String contextProject;
 
-    /**
-     *
-     */
-    private String contextRole;
+    public String getAccessId() {
+        return accessId;
+    }
 
-    /**
-     * 数据组
-     */
-    private String contextOrganization;
-
+    public void setAccessId(String accessId) {
+        this.accessId = accessId;
+    }
 
     public String getContextId() {
         return contextId;
@@ -64,27 +65,27 @@ public class Access {
         this.contextName = contextName;
     }
 
-    public String getContextType() {
-        return contextType;
+    public String getAccessType() {
+        return accessType;
     }
 
-    public void setContextType(String contextType) {
-        this.contextType = contextType;
+    public void setAccessType(String accessType) {
+        this.accessType = accessType;
     }
 
-    public String getContextAction() {
-        return contextAction;
+    public String getActionGroup() {
+        return actionGroup;
     }
 
-    public void setContextAction(String contextAction) {
-        this.contextAction = contextAction;
+    public void setActionGroup(String actionGroup) {
+        this.actionGroup = actionGroup;
     }
 
-    public String getContextData() {
-        return contextData;
+    public String getDataGroup() {
+        return dataGroup;
     }
 
-    public void setContextData(String contextData) {
-        this.contextData = contextData;
+    public void setDataGroup(String dataGroup) {
+        this.dataGroup = dataGroup;
     }
 }
