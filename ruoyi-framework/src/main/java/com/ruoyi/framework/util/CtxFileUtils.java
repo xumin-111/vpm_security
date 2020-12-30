@@ -112,14 +112,14 @@ public class CtxFileUtils {
         System.out.println(accessList);
     }
 
-    public static void main(String[] args) {
+   /* public static void main(String[] args) {
         Access accessParam = new Access();
         accessParam.setContextName("VPMADMIN");
         CtxFileUtils.readCtxFile("E:/vpmContext/PnO",accessParam);
 
-        /*Object rscContext = ctxMapCache.get("RscContext");
-        System.out.println("xxx"+rscContext.toString());*/
+        *//*Object rscContext = ctxMapCache.get("RscContext");
+        System.out.println("xxx"+rscContext.toString());*//*
 
-    }
+    }*/
 
 }
