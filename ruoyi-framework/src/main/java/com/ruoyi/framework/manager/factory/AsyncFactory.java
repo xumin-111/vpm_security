@@ -1,8 +1,5 @@
 package com.ruoyi.framework.manager.factory;
 
-import java.util.TimerTask;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import com.ruoyi.common.constant.Constants;
 import com.ruoyi.common.utils.AddressUtils;
 import com.ruoyi.common.utils.ServletUtils;
@@ -17,6 +14,11 @@ import com.ruoyi.system.service.ISysOperLogService;
 import com.ruoyi.system.service.ISysUserOnlineService;
 import com.ruoyi.system.service.impl.SysLogininforServiceImpl;
 import eu.bitwalker.useragentutils.UserAgent;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.io.File;
+import java.util.TimerTask;
 
 /**
  * 异步工厂（产生任务用）
@@ -129,6 +131,44 @@ public class AsyncFactory
                 }
                 // 插入数据
                 SpringUtils.getBean(SysLogininforServiceImpl.class).insertLogininfor(logininfor);
+            }
+        };
+    }
+
+    /**
+     * 执行上下文导出命令
+     * @return 任务task
+     */
+    public static TimerTask exportCtxFile(String exportPath)
+    {
+        return new TimerTask()
+        {
+            @Override
+            public void run()
+            {
+                File file = new File(exportPath);
+                if(!file.exists()){
+                    file.mkdirs();
+                }
+                File[] files = file.listFiles();
+                if(files.length > 0){
+                    //>20min先删除原来文件
+                    for (File f : files) {
+                        System.out.println("fileName......."+f.getName());
+                        //f.delete();
+                    }
+                }
+                File[] filesL = file.listFiles();
+                if(files.length == 0){
+                    //todo dumpling导出ctx文件
+                    System.out.println("正在执行上下文导出命令..........");
+                    try {
+                        Thread.sleep(1000);
+                    }catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                    System.out.println("导出文件成功！");
+                }
             }
         };
     }

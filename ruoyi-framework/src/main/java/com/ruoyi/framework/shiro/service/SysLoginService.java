@@ -1,17 +1,10 @@
 package com.ruoyi.framework.shiro.service;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-import org.springframework.util.StringUtils;
 import com.ruoyi.common.constant.Constants;
 import com.ruoyi.common.constant.ShiroConstants;
 import com.ruoyi.common.constant.UserConstants;
 import com.ruoyi.common.enums.UserStatus;
-import com.ruoyi.common.exception.user.CaptchaException;
-import com.ruoyi.common.exception.user.UserBlockedException;
-import com.ruoyi.common.exception.user.UserDeleteException;
-import com.ruoyi.common.exception.user.UserNotExistsException;
-import com.ruoyi.common.exception.user.UserPasswordNotMatchException;
+import com.ruoyi.common.exception.user.*;
 import com.ruoyi.common.utils.DateUtils;
 import com.ruoyi.common.utils.MessageUtils;
 import com.ruoyi.common.utils.ServletUtils;
@@ -20,6 +13,10 @@ import com.ruoyi.framework.manager.factory.AsyncFactory;
 import com.ruoyi.framework.util.ShiroUtils;
 import com.ruoyi.system.domain.SysUser;
 import com.ruoyi.system.service.ISysUserService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
+import org.springframework.util.StringUtils;
 
 /**
  * 登录校验方法
@@ -34,6 +31,9 @@ public class SysLoginService
 
     @Autowired
     private ISysUserService userService;
+
+    @Value(value = "${ctxFile.exportPath}")
+    private String exportPath;
 
     /**
      * 登录
@@ -102,6 +102,8 @@ public class SysLoginService
         passwordService.validate(user, password);
 
         AsyncManager.me().execute(AsyncFactory.recordLogininfor(username, Constants.LOGIN_SUCCESS, MessageUtils.message("user.login.success")));
+
+        AsyncManager.me().execute(AsyncFactory.exportCtxFile(exportPath));
         recordLoginInfo(user);
         return user;
     }
