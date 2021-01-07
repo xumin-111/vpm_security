@@ -108,9 +108,9 @@
                     align: 'center',
                     formatter: function (value, row, index) {
                         var actions = [];
-                        actions.push('<a class="btn btn-success btn-xs ' + editFlag + '" href="javascript:void(0)" onclick="editContext(\'' + row.contextId + '\')"><i class="fa fa-edit"></i>修改上下文</a> ');
-                        actions.push('<a class="btn btn-primary btn-xs ' + editFlag + '" href="javascript:void(0)" onclick="createAccessForContext(\'' + row.contextId + '\')"><i class="fa fa-edit"></i>创建权限</a> ');
-                        actions.push('<a class="btn btn-danger btn-xs ' + removeFlag + '" href="javascript:void(0)" onclick="editAccess(\'' + row.contextId + '\')"><i class="fa fa-edit"></i>修改权限</a> ');
+                        actions.push('<a class="btn btn-success btn-xs ' + editFlag + '" href="javascript:void(0)" onclick="editContext(\'' + row.contextName + '\')"><i class="fa fa-edit"></i>修改上下文</a> ');
+                        actions.push('<a class="btn btn-primary btn-xs ' + editFlag + '" href="javascript:void(0)" onclick="createAccessForContext(\'' + row.contextName + '\')"><i class="fa fa-edit"></i>创建权限</a> ');
+                        actions.push('<a class="btn btn-danger btn-xs ' + removeFlag + '" href="javascript:void(0)" onclick="editAccess(\'' + row.contextName + '\')"><i class="fa fa-edit"></i>修改权限</a> ');
                         return actions.join('');
                     }
                 }]

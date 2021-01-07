@@ -2,25 +2,27 @@
 spring:
     datasource:
         type: com.alibaba.druid.pool.DruidDataSource
-        driverClassName: com.mysql.cj.jdbc.Driver
         druid:
-            #  开发测试环境
+            #  测试环境mysql
             master:
                 url: jdbc:mysql://rm-bp1uw4mdv385bcsu9125010cm.mysql.rds.aliyuncs.com:3306/sau?useUnicode=true&characterEncoding=utf8&serverTimezone=GMT%2B8
                 username: dumpling
                 password: 123$Qwer
-            #  生产环境
-#            master:
-#                url: jdbc:mysql://119.3.175.22:3306/sau?useUnicode=true&characterEncoding=utf8&zeroDateTimeBehavior=convertToNull&useSSL=true&serverTimezone=GMT%2B8
-#                username: root
-#                password: 123456
+                driverClassName: com.mysql.cj.jdbc.Driver
+            #  本地SqLite数据库
+#            sqlite:
+#                url: jdbc:sqlite:vpm.sqlite
+#                driverClassName: org.sqlite.JDBC
+#                username:
+#                password:
             # 从库数据源
             slave:
                 # 从数据源开关/默认关闭
-                enabled: false
-                url: 
-                username: 
-                password: 
+                enabled: true
+                url: jdbc:mysql://127.0.0.1:3306/sau?useUnicode=true&characterEncoding=utf8&serverTimezone=GMT%2B8
+                username: root
+                password: 1234
+                driverClassName: com.mysql.cj.jdbc.Driver
             # 初始连接数
             initialSize: 5
             # 最小连接池数量

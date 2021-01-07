@@ -1,6 +1,8 @@
 package com.ruoyi.web.controller.system;
 
 import com.ruoyi.common.core.controller.BaseController;
+import com.ruoyi.common.core.domain.AjaxResult;
+import com.ruoyi.common.core.domain.Ztree;
 import com.ruoyi.common.core.page.PageDomain;
 import com.ruoyi.common.core.page.TableDataInfo;
 import com.ruoyi.common.core.page.TableSupport;
@@ -13,6 +15,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.ModelMap;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.File;
@@ -108,7 +111,6 @@ public class SysContextController extends BaseController {
         return prefix + "/add";
     }
 
-
     /**
      * 修改上下文
      */
@@ -166,32 +168,108 @@ public class SysContextController extends BaseController {
     }
 
     /**
-     * 新增权限
+     * 新增权限 同时在内存中初始化下拉菜单内容
      */
     @GetMapping("/addAccess")
-    public String addAccess(ModelMap mmap) {
-        Access access = new Access();
-        access.setContextId("12345");
-        access.setContextName("Admin");
-        access.setAccessType("VPM");
-        access.setActionGroup("1111");
-        mmap.put("access", access);
+    public String addAccess() {
+        File file = new File(exportPath);
+        String fileName = "";
+        for (File exportFile : file.listFiles()) {
+            fileName = exportFile.getName();
+            //>20min 删除
+        }
+        if(StringUtils.isEmpty(fileName)){
+            //调用cmd生成
+        }
+        //初始化所有下拉菜单内容
+        contextService.initAllCtxSelect(exportPath+"/"+fileName);
         return prefix + "/addAccess";
     }
 
+
+    /**
+     * 新增权限保存
+     */
+    //@RequiresPermissions("system:user:add")
+    //@Log(title = "用户管理", businessType = BusinessType.INSERT)
+    @PostMapping("/addAccess")
+    @ResponseBody
+    public AjaxResult addAccessSave(@Validated Access access)
+    {
+        File file = new File(exportPath);
+        String fileName = "";
+        for (File exportFile : file.listFiles()) {
+            fileName = exportFile.getName();
+            //>20min 删除
+        }
+        if(StringUtils.isEmpty(fileName)){
+            //调用cmd生成
+        }
+        Access accessParam = new Access();
+        accessParam.setContextName(access.getContextName());
+        List<Access> accessList = contextService.getAccessList(accessParam,exportPath+"/"+fileName);
+        for (Access pri : accessList) {
+            String accessType = pri.getAccessType();
+            String actionGroup = pri.getActionGroup();
+            String dataGroup = pri.getDataGroup();
+            boolean flag = false;
+            if(StringUtils.isEmpty(dataGroup) && StringUtils.isEmpty(access.getDataGroup())){
+                flag = true;
+            }else if(dataGroup!=null && access.getDataGroup()!= null && access.getDataGroup().indexOf(dataGroup) != -1){
+                flag = true;
+            }
+            boolean typeFlag = false;
+            if(StringUtils.isEmpty(accessType) && StringUtils.isEmpty(access.getAccessType())){
+                typeFlag = true;
+            }else if(accessType!=null && access.getAccessType()!= null && access.getAccessType().indexOf(accessType) != -1){
+                typeFlag = true;
+            }
+            if(typeFlag && actionGroup.equals(access.getActionGroup())
+            && flag){
+                return error("新增权限失败，已存在");
+            }
+        }
+        return toAjax(contextService.insertAccess(access,exportPath,fileName));
+    }
 
     /**
      * 针对上下文新增权限
      */
     @GetMapping("/createAccess/{contextId}")
     public String createAccess(@PathVariable("contextId") String contextId, ModelMap mmap) {
-        Access access = new Access();
-        access.setContextId("12345");
-        access.setContextName("Admin");
-        access.setAccessType("VPM");
-        access.setActionGroup("LOGIN");
-        access.setDataGroup("DataGroupTest");
-        mmap.put("access", access);
+        VpmContext vpmContext = contextService.getContextByName(contextId);
+        mmap.put("context", vpmContext);
+        File file = new File(exportPath);
+        String fileName = "";
+        for (File exportFile : file.listFiles()) {
+            fileName = exportFile.getName();
+            //>20min 删除
+        }
+        if(StringUtils.isEmpty(fileName)){
+            //调用cmd生成
+        }
+        //初始化所有下拉菜单内容
+        contextService.initAllCtxSelect(exportPath+"/"+fileName);
         return prefix + "/createAccess";
+    }
+
+    /**
+     * 选择操作树
+     */
+    @GetMapping("/selectProcessTree")
+    public String selectProcessTree()
+    {
+        return prefix + "/tree";
+    }
+
+    /**
+     * 加载操作列表树
+     */
+    @GetMapping("/treeData")
+    @ResponseBody
+    public List<Ztree> treeData()
+    {
+        List<Ztree> ztrees = contextService.selectProcessTree(null);
+        return ztrees;
     }
 }

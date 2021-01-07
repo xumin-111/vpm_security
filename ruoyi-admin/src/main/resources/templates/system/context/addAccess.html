@@ -7,38 +7,40 @@
 <body>
 <div class="main-content">
     <form id="form-access-add" class="form-horizontal">
-        <!--<input name="deptId" type="hidden" id="treeId"/>-->
+        <input name="treeId" type="hidden" id="treeId"/>
         <div class="form-group">
-            <label class="col-sm-3 control-label">* 上下文Id：</label>
+            <label class="col-sm-3 control-label"><span style="color: red; ">*</span> 上下文Id：</label>
             <div class="col-sm-8">
-                <select class="form-control" name="contextId" id="contextId"  required>
-                    <option value="0">内部</option>
-                    <option value="1">一般</option>
-                    <option value="2">重要</option>
+                <select class="form-control" name="contextName" id="contextName"  th:with="type=${@vpmCtx.getVpmContextList()}" required>
+                    <option value="">---请选择---</option>
+                    <option th:each="ctx : ${type}" th:text="${ctx.contextName}" th:value="${ctx.contextName}"></option>
                 </select>
             </div>
         </div>
         <div class="form-group">
-            <label class="col-sm-3 control-label">* 类型：</label>
+            <label class="col-sm-3 control-label"><span style="color: red; ">*</span> 类型：</label>
             <div class="col-sm-8">
-                <select class="form-control" name="accessType" id="accessType" th:with="type=${@dept.getDepartmentId()}" required>
-                    <option th:each="dept : ${type}" th:text="${dept.deptName}" th:value="${dept.deptId}"></option>
+                <select class="form-control" name="accessType" id="accessType" th:with="type=${@vpmCtx.getVpmType()}" required>
+                    <option value="">---请选择---</option>
+                    <option th:each="vpmType : ${type}" th:text="${vpmType.name}" th:value="${vpmType.name}"></option>
                 </select>
             </div>
         </div>
         <div class="form-group">
-            <label class="col-sm-3 control-label">* 操作/操作组：</label>
+            <label class="col-sm-3 control-label"><span style="color: red; ">*</span> 操作/操作组：</label>
             <div class="col-sm-8">
-                <select class="form-control" name="operGroup" id="operGroup" th:with="type=${@dept.getDepartmentId()}"  required>
-                    <option th:each="dept : ${type}" th:text="${dept.deptName}" th:value="${dept.deptId}"></option>
-                </select>
+                <div class="input-group">
+                    <input class="form-control" type="text" name="actionGroup" onclick="selectProcessTree()" id="treeName" autocomplete="off" placeholder="请选择操作/操作组" required>
+                    <span class="input-group-addon"><i class="fa fa-search" onclick="selectProcessTree()"></i></span>
+                </div>
             </div>
         </div>
         <div class="form-group">
-            <label class="col-sm-3 control-label">* 数据组：</label>
+            <label class="col-sm-3 control-label">数据组：</label>
             <div class="col-sm-8">
-                <select class="form-control" name="dataGroup" id="dataGroup" th:with="type=${@dept.getDepartmentId()}"  required>
-                    <option th:each="dept : ${type}" th:text="${dept.deptName}" th:value="${dept.deptId}"></option>
+                <select class="form-control" name="dataGroup" id="dataGroup" th:with="type=${@vpmCtx.getVpmDataGroup()}">
+                    <option value="">---请选择---</option>
+                    <option th:each="dataGroup : ${type}" th:text="${dataGroup.dataName}" th:value="${dataGroup.dataValue}"></option>
                 </select>
             </div>
     </div>
@@ -46,36 +48,46 @@
 </div>
 
 <div class="row">
-    <div class="col-sm-offset-5 col-sm-10">
+<!--    <div class="col-sm-offset-5 col-sm-10">
         <button type="button" class="btn btn-sm btn-primary" onclick="submitHandler()"><i class="fa fa-check"></i>确 认
         </button>&nbsp;
         <button type="button" class="btn btn-sm btn-danger" onclick="closeItem()"><i class="fa fa-reply-all"></i>取 消
         </button>
-    </div>
+    </div>-->
 </div>
 <th:block th:include="include :: footer"/>
 <th:block th:include="include :: select2-js"/>
 <script>
+    var prefix = ctx + "system/context";
     function submitHandler() {
         if ($.validate.form()) {
-            var data = $("#form-user-add").serializeArray();
-            var status = $("input[id='status']").is(':checked') == true ? 0 : 1;
-            var roleIds = $.form.selectCheckeds("role");
-            var postIds = $.form.selectSelects("post");
-            data.push({"name": "status", "value": status});
-            data.push({"name": "roleIds", "value": roleIds});
-            data.push({"name": "postIds", "value": postIds});
-            $.operate.saveTab(prefix + "/add", data);
+            var treeId = $("#treeId").val();
+            if(treeId == 0){
+                $("#accessType").val("");
+            }
+            var data = $("#form-access-add").serializeArray();
+            $.ajax({
+                cache: true,
+                type: "POST",
+                url: prefix + "/addAccess",
+                data: data,
+                async: false,
+                error: function (request) {
+                    $.modal.alertError("系统错误");
+                },
+                success: function (msg) {
+                    $.operate.successCallback(msg);
+                }
+            });
+            //$.operate.saveTab(prefix + "/addAccess", data);
         }
     }
 
-    /*用户管理-新增-选择部门树*/
-    function selectDeptTree() {
-        var treeId = $("#treeId").val();
-        var deptId = $.common.isEmpty(treeId) ? "100" : $("#treeId").val();
-        var url = ctx + "system/dept/selectDeptTree/" + deptId;
+    /*选择操作/操作组树*/
+    function selectProcessTree() {
+        var url = ctx + "system/context/selectProcessTree";
         var options = {
-            title: '选择部门',
+            title: '选择操作/操作组',
             width: "380",
             url: url,
             callBack: doSubmit
@@ -84,21 +96,11 @@
     }
 
     function doSubmit(index, layero) {
-        var tree = layero.find("iframe")[0].contentWindow.$._tree;
-        if ($.tree.notAllowParents(tree)) {
-            var body = layer.getChildFrame('body', index);
-            $("#treeId").val(body.find('#treeId').val());
-            $("#treeName").val(body.find('#treeName').val());
-            layer.close(index);
-        }
+        var body = layer.getChildFrame('body', index);
+        $("#treeId").val(body.find('#treeId').val());
+        $("#treeName").val(body.find('#treeName').val());
+        layer.close(index);
     }
-
-    $(function () {
-        $('#post').select2({
-            placeholder: "请选择岗位",
-            allowClear: true
-        });
-    })
 </script>
 </body>
 </html>
