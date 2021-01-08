@@ -48,6 +48,7 @@ public class SysContextController extends BaseController {
 
     /**
      * 权限列表
+     *
      * @param access
      * @return
      */
@@ -58,13 +59,13 @@ public class SysContextController extends BaseController {
         //判断ctx文件生成时间，超过20分钟重新导出
         File file = new File(exportPath);
         String fileName = "";
-        while(true){
-            if(file.listFiles().length > 0){
+        while (true) {
+            if (file.listFiles().length > 0) {
                 break;
             }
             try {
                 Thread.sleep(500);
-            }catch (InterruptedException e) {
+            } catch (InterruptedException e) {
                 e.printStackTrace();
             }
         }
@@ -72,16 +73,16 @@ public class SysContextController extends BaseController {
             fileName = exportFile.getName();
             //>20min 删除
         }
-        if(StringUtils.isEmpty(fileName)){
+        if (StringUtils.isEmpty(fileName)) {
             //调用cmd生成
         }
         //todo dumpling每次获取列表时判断文件生成时间
 
-        List<Access> accessList = contextService.getAccessList(access,exportPath+"/"+fileName);
+        List<Access> accessList = contextService.getAccessList(access, exportPath + "/" + fileName);
         PageDomain pageDomain = TableSupport.buildPageRequest();
         Integer pageNum = pageDomain.getPageNum();
         Integer pageSize = pageDomain.getPageSize();
-        List pageList = accessList.stream().skip(pageSize*(pageNum-1)).limit(pageSize).collect(Collectors.toList());
+        List pageList = accessList.stream().skip(pageSize * (pageNum - 1)).limit(pageSize).collect(Collectors.toList());
 
         TableDataInfo rspData = new TableDataInfo();
         rspData.setCode(0);
@@ -90,24 +91,22 @@ public class SysContextController extends BaseController {
         return rspData;
     }
 
-
     /**
-     * 新增用户
+     * 新增上下文  同时在内存中初始化下拉菜单内容
      */
     @GetMapping("/add")
-    public String add(ModelMap mmap) {
-        Project project = new Project();
-        project.setProjectNumber("project001");
-        mmap.put("project", project);
-        SysRole sysRole = new SysRole();
-        sysRole.setRoleName("role001");
-        mmap.put("role", sysRole);
-        Organization organization = new Organization();
-        organization.setDepartmentNumber("dept001");
-        mmap.put("organization", organization);
-        //mmap.put("roles", roleService.selectRoleAll());
-        //mmap.put("posts", postService.selectPostAll());
-        System.out.println("11111");
+    public String add() {
+        File file = new File(exportPath);
+        String fileName = "";
+        for (File exportFile : file.listFiles()) {
+            fileName = exportFile.getName();
+            //>20min 删除
+        }
+        if (StringUtils.isEmpty(fileName)) {
+            //调用cmd生成
+        }
+        //初始化所有下拉菜单内容
+        contextService.initAllCtxSelect(exportPath + "/" + fileName);
         return prefix + "/add";
     }
 
@@ -134,6 +133,7 @@ public class SysContextController extends BaseController {
 
     /**
      * 修改权限时展示权限列表
+     *
      * @return
      */
     @PostMapping("/accessList/{contextId}")
@@ -178,11 +178,11 @@ public class SysContextController extends BaseController {
             fileName = exportFile.getName();
             //>20min 删除
         }
-        if(StringUtils.isEmpty(fileName)){
+        if (StringUtils.isEmpty(fileName)) {
             //调用cmd生成
         }
         //初始化所有下拉菜单内容
-        contextService.initAllCtxSelect(exportPath+"/"+fileName);
+        contextService.initAllCtxSelect(exportPath + "/" + fileName);
         return prefix + "/addAccess";
     }
 
@@ -194,42 +194,76 @@ public class SysContextController extends BaseController {
     //@Log(title = "用户管理", businessType = BusinessType.INSERT)
     @PostMapping("/addAccess")
     @ResponseBody
-    public AjaxResult addAccessSave(@Validated Access access)
-    {
+    public AjaxResult addAccessSave(@Validated Access access) {
         File file = new File(exportPath);
         String fileName = "";
         for (File exportFile : file.listFiles()) {
             fileName = exportFile.getName();
             //>20min 删除
         }
-        if(StringUtils.isEmpty(fileName)){
+        if (StringUtils.isEmpty(fileName)) {
             //调用cmd生成
         }
         Access accessParam = new Access();
         accessParam.setContextName(access.getContextName());
-        List<Access> accessList = contextService.getAccessList(accessParam,exportPath+"/"+fileName);
+        List<Access> accessList = contextService.getAccessList(accessParam, exportPath + "/" + fileName);
         for (Access pri : accessList) {
             String accessType = pri.getAccessType();
             String actionGroup = pri.getActionGroup();
             String dataGroup = pri.getDataGroup();
             boolean flag = false;
-            if(StringUtils.isEmpty(dataGroup) && StringUtils.isEmpty(access.getDataGroup())){
+            if (StringUtils.isEmpty(dataGroup) && StringUtils.isEmpty(access.getDataGroup())) {
                 flag = true;
-            }else if(dataGroup!=null && access.getDataGroup()!= null && access.getDataGroup().indexOf(dataGroup) != -1){
+            } else if (dataGroup != null && access.getDataGroup() != null && access.getDataGroup().indexOf(dataGroup) != -1) {
                 flag = true;
             }
             boolean typeFlag = false;
-            if(StringUtils.isEmpty(accessType) && StringUtils.isEmpty(access.getAccessType())){
+            if (StringUtils.isEmpty(accessType) && StringUtils.isEmpty(access.getAccessType())) {
                 typeFlag = true;
-            }else if(accessType!=null && access.getAccessType()!= null && access.getAccessType().indexOf(accessType) != -1){
+            } else if (accessType != null && access.getAccessType() != null && access.getAccessType().indexOf(accessType) != -1) {
                 typeFlag = true;
             }
-            if(typeFlag && actionGroup.equals(access.getActionGroup())
-            && flag){
+            if (typeFlag && actionGroup.equals(access.getActionGroup())
+                    && flag) {
                 return error("新增权限失败，已存在");
             }
         }
-        return toAjax(contextService.insertAccess(access,exportPath,fileName));
+        return toAjax(contextService.insertAccess(access, exportPath, fileName));
+    }
+
+    /**
+     * 新增上下文保存
+     */
+    //@RequiresPermissions("system:user:add")
+    //@Log(title = "用户管理", businessType = BusinessType.INSERT)
+    @PostMapping("/add")
+    @ResponseBody
+    public AjaxResult addContextSave(@Validated VpmContext vpmContext) {
+        File file = new File(exportPath);
+        String fileName = "";
+        for (File exportFile : file.listFiles()) {
+            fileName = exportFile.getName();
+            //>20min 删除
+        }
+        if (StringUtils.isEmpty(fileName)) {
+            //调用cmd生成
+        }
+        vpmContext.setContextName(vpmContext.getContextRole() + ";" + vpmContext.getContextOrganization() + ";" + vpmContext.getContextProject());
+        List<VpmContext> contextList = contextService.getContextList(vpmContext, exportPath + "/" + fileName);
+        for (VpmContext pri : contextList) {
+            String contextName = pri.getContextName();
+            boolean flag = false;
+            if (StringUtils.isEmpty(contextName) && StringUtils.isEmpty(vpmContext.getContextName())) {
+                flag = true;
+            } else if (contextName != null && vpmContext.getContextName() != null && vpmContext.getContextName().indexOf(contextName) != -1) {
+                flag = true;
+            }
+            if (flag) {
+                return error("新增上下文失败失败，已存在");
+            }
+        }
+        return toAjax(contextService.insertContext(vpmContext, exportPath, fileName));
+        //return toAjax(1);
     }
 
     /**
@@ -245,11 +279,11 @@ public class SysContextController extends BaseController {
             fileName = exportFile.getName();
             //>20min 删除
         }
-        if(StringUtils.isEmpty(fileName)){
+        if (StringUtils.isEmpty(fileName)) {
             //调用cmd生成
         }
         //初始化所有下拉菜单内容
-        contextService.initAllCtxSelect(exportPath+"/"+fileName);
+        contextService.initAllCtxSelect(exportPath + "/" + fileName);
         return prefix + "/createAccess";
     }
 
@@ -257,8 +291,7 @@ public class SysContextController extends BaseController {
      * 选择操作树
      */
     @GetMapping("/selectProcessTree")
-    public String selectProcessTree()
-    {
+    public String selectProcessTree() {
         return prefix + "/tree";
     }
 
@@ -267,8 +300,7 @@ public class SysContextController extends BaseController {
      */
     @GetMapping("/treeData")
     @ResponseBody
-    public List<Ztree> treeData()
-    {
+    public List<Ztree> treeData() {
         List<Ztree> ztrees = contextService.selectProcessTree(null);
         return ztrees;
     }

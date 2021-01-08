@@ -2,6 +2,9 @@ package com.ruoyi.system.service;
 
 import java.util.List;
 import com.ruoyi.common.core.domain.Ztree;
+import com.ruoyi.project.domain.Department;
+import com.ruoyi.system.domain.Organization;
+import com.ruoyi.system.domain.Project;
 import com.ruoyi.system.domain.SysDept;
 import com.ruoyi.system.domain.SysRole;
 
@@ -12,6 +15,7 @@ import com.ruoyi.system.domain.SysRole;
  */
 public interface ISysDeptService
 {
+    public List<Organization> getDepartmentList(Organization organization, String exportPath);
     /**
      * 查询部门管理数据
      * 

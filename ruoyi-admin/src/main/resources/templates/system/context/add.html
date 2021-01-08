@@ -6,7 +6,7 @@
 </head>
 <body>
 <div class="main-content">
-    <form id="form-user-add" class="form-horizontal">
+    <form id="form-context-add" class="form-horizontal">
         <input name="deptId" type="hidden" id="treeId"/>
         <!--<h4 class="form-header h4">创建上下文</h4>-->
         <div class="row">
@@ -14,10 +14,11 @@
                 <div class="form-group">
                     <label class="col-sm-4 control-label"><span style="color: red; ">*</span>项目编号：</label>
                     <div class="col-sm-8">
-                        <select id="addProductId" name="addProductId" class="form-control">
-                            <option value=""></option>
-                            <option th:each="a:${project}" th:value="${a.projectNumber}"
-                                    th:text="${a.projectNumber}"></option>
+                        <select class="form-control" name="contextProject" id="contextProject"
+                                th:with="type=${@vpmCtx.getVpmDataProject()}" required>
+                            <option value="">---请选择---</option>
+                            <option th:each="project : ${type}" th:text="${project.projectNumber}"
+                                    th:value="${project.projectNumber}"></option>
                         </select>
                     </div>
                 </div>
@@ -28,9 +29,11 @@
                 <div class="form-group">
                     <label class="col-sm-4 control-label"><span style="color: red; ">*</span>角色：</label>
                     <div class="col-sm-8">
-                        <select id="addRole" name="addRole" class="form-control">
-                            <option value=""></option>
-                            <option th:each="b:${role}" th:value="${b.roleName}" th:text="${b.roleName}"></option>
+                        <select class="form-control" name="contextRole" id="contextRole"
+                                th:with="type=${@vpmCtx.getVpmDataRole()}" required>
+                            <option value="">---请选择---</option>
+                            <option th:each="role : ${type}" th:text="${role.roleName}"
+                                    th:value="${role.roleName}"></option>
                         </select>
                     </div>
                 </div>
@@ -41,10 +44,11 @@
                 <div class="form-group">
                     <label class="col-sm-4 control-label"><span style="color: red; ">*</span>组织：</label>
                     <div class="col-sm-8">
-                        <select id="addDept" name="addDept" class="form-control">
-                            <option value=""></option>
-                            <option th:each="c:${organization}" th:value="${c.departmentNumber}"
-                                    th:text="${c.departmentNumber}"></option>
+                        <select class="form-control" name="contextOrganization" id="contextOrganization"
+                                th:with="type=${@vpmCtx.getVpmDataOrganization()}" required>
+                            <option value="">---请选择---</option>
+                            <option th:each="organization : ${type}" th:text="${organization.departmentNumber}"
+                                    th:value="${organization.departmentNumber}"></option>
                         </select>
                     </div>
                 </div>
@@ -55,14 +59,15 @@
                 <div class="form-group">
                     <label class="col-sm-3 control-label">增加人员：</label>
                     <div class="col-sm-8">
-                    <div class="input-group">
-                        <textarea class="form-control" type="text" name="addUser" id="addUser" readonly style="background-color:#ffffff"></textarea>
-                        <span class="input-group-addon" style="border: 0px">
+                        <div class="input-group">
+                            <textarea class="form-control" type="text" name="addPersonList" id="addPersonList" readonly
+                                      style="background-color:#ffffff"></textarea>
+                            <span class="input-group-addon" style="border: 0px">
                             <button type="button" class="btn btn-sm btn-primary" onclick="selectDeptTree()">
                                 <i class="fa fa-check"></i>添加人员</button>&nbsp;
                         </span>
+                        </div>
                     </div>
-                </div>
                 </div>
             </div>
         </div>
@@ -72,7 +77,8 @@
                     <label class="col-sm-3 control-label">移除人员：</label>
                     <div class="col-sm-8">
                         <div class="input-group">
-                            <textarea class="form-control" type="text" name="removeUser" id="removeUser" readonly style="background-color:#ffffff"></textarea>
+                            <textarea class="form-control" type="text" name="removePersonList" id="removePersonList" readonly
+                                      style="background-color:#ffffff"></textarea>
                             <span class="input-group-addon" style="border: 0px">
                                 <button type="button" class="btn btn-sm btn-primary" onclick="selectDeptTree()">
                                     <i class="fa fa-check"></i>添加人员</button>&nbsp;
@@ -96,17 +102,24 @@
 <th:block th:include="include :: footer"/>
 <th:block th:include="include :: select2-js"/>
 <script>
+    var prefix = ctx + "system/context";
+
     function submitHandler() {
-        console.log("xcvxcv");
         if ($.validate.form()) {
-            var data = $("#form-user-add").serializeArray();
-            var status = $("input[id='status']").is(':checked') == true ? 0 : 1;
-            var roleIds = $.form.selectCheckeds("role");
-            var postIds = $.form.selectSelects("post");
-            data.push({"name": "status", "value": status});
-            data.push({"name": "roleIds", "value": roleIds});
-            data.push({"name": "postIds", "value": postIds});
-            $.operate.saveTab(prefix + "/add", data);
+            var data = $("#form-context-add").serializeArray();
+            $.ajax({
+                cache: true,
+                type: "POST",
+                url: prefix + "/add",
+                data: data,
+                async: false,
+                error: function (request) {
+                    $.modal.alertError("系统错误");
+                },
+                success: function (msg) {
+                    $.operate.successCallback(msg);
+                }
+            });
         }
     }
 
