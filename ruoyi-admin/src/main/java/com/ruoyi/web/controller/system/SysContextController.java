@@ -19,8 +19,8 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.File;
-import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
@@ -138,17 +138,30 @@ public class SysContextController extends BaseController {
      */
     @PostMapping("/accessList/{contextId}")
     @ResponseBody
-    public TableDataInfo accessList() {
-        startPage();
-        //todo dumpling 根据上下文Id获取权限Access列表
-        List<Access> list1 = new ArrayList<Access>();
+    public TableDataInfo accessList(@PathVariable("contextId") String contextId) {
+        File file = new File(exportPath);
+        String fileName = "";
+        for (File exportFile : file.listFiles()) {
+            fileName = exportFile.getName();
+            //>20min 删除
+        }
+        if(StringUtils.isEmpty(fileName)){
+            //调用cmd生成
+        }
+        //todo dumpling每次获取列表时判断文件生成时间
         Access access = new Access();
-        access.setAccessId("123");
-        access.setAccessType("VPMadmin");
-        access.setActionGroup("操作1");
-        access.setDataGroup("数据1");
-        list1.add(access);
-        return getDataTable(list1);
+        access.setContextName(contextId);
+        List<Access> accessList = contextService.getAccessList(access,exportPath+"/"+fileName);
+        PageDomain pageDomain = TableSupport.buildPageRequest();
+        Integer pageNum = pageDomain.getPageNum();
+        Integer pageSize = pageDomain.getPageSize();
+        List pageList = accessList.stream().skip(pageSize*(pageNum-1)).limit(pageSize).collect(Collectors.toList());
+
+        TableDataInfo rspData = new TableDataInfo();
+        rspData.setCode(0);
+        rspData.setRows(pageList);
+        rspData.setTotal(accessList.size());
+        return rspData;
     }
 
 
@@ -157,13 +170,19 @@ public class SysContextController extends BaseController {
      */
     @GetMapping("/editAccess/{contextId}")
     public String editAccess(@PathVariable("contextId") String contextId, ModelMap mmap) {
-        VpmContext context = new VpmContext();
-        context.setContextId("12345");
-        context.setContextName("VPMADMIN.DEFAULT");
-        mmap.put("context", context);
-        //mmap.put("user", userService.selectUserById(userId));
-        //mmap.put("roles", roleService.selectRolesByUserId(userId));
-        //mmap.put("posts", postService.selectPostsByUserId(userId));
+        File file = new File(exportPath);
+        String fileName = "";
+        for (File exportFile : file.listFiles()) {
+            fileName = exportFile.getName();
+            //>20min 删除
+        }
+        if(StringUtils.isEmpty(fileName)){
+            //调用cmd生成
+        }
+        //初始化所有下拉菜单内容
+        contextService.initAllCtxSelect(exportPath+"/"+fileName);
+        VpmContext vpmContext = contextService.getContextByName(contextId);
+        mmap.put("context", vpmContext);
         return prefix + "/editAccess";
     }
 
@@ -225,7 +244,48 @@ public class SysContextController extends BaseController {
                 typeFlag = true;
             }
             if(typeFlag && actionGroup.equals(access.getActionGroup())
-            && flag){
+                    && flag){
+                return error("新增权限失败，已存在");
+            }
+        }
+        return toAjax(contextService.insertAccess(access,exportPath,fileName));
+    }
+
+
+    @PostMapping("/updateAccessSave")
+    @ResponseBody
+    public AjaxResult updateAccessSave(@Validated Access access)
+    {
+        File file = new File(exportPath);
+        String fileName = "";
+        for (File exportFile : file.listFiles()) {
+            fileName = exportFile.getName();
+            //>20min 删除
+        }
+        if(StringUtils.isEmpty(fileName)){
+            //调用cmd生成
+        }
+        Access accessParam = new Access();
+        accessParam.setContextName(access.getContextName());
+        List<Access> accessList = contextService.getAccessList(accessParam,exportPath+"/"+fileName);
+        for (Access pri : accessList) {
+            String accessType = pri.getAccessType();
+            String actionGroup = pri.getActionGroup();
+            String dataGroup = pri.getDataGroup();
+            boolean flag = false;
+            if(StringUtils.isEmpty(dataGroup) && StringUtils.isEmpty(access.getDataGroup())){
+                flag = true;
+            }else if(dataGroup!=null && access.getDataGroup()!= null && access.getDataGroup().indexOf(dataGroup) != -1){
+                flag = true;
+            }
+            boolean typeFlag = false;
+            if(StringUtils.isEmpty(accessType) && StringUtils.isEmpty(access.getAccessType())){
+                typeFlag = true;
+            }else if(accessType!=null && access.getAccessType()!= null && access.getAccessType().indexOf(accessType) != -1){
+                typeFlag = true;
+            }
+            if(typeFlag && actionGroup.equals(access.getActionGroup())
+                    && flag){
                 return error("新增权限失败，已存在");
             }
         }
@@ -271,5 +331,42 @@ public class SysContextController extends BaseController {
     {
         List<Ztree> ztrees = contextService.selectProcessTree(null);
         return ztrees;
+    }
+
+    @GetMapping("/getVpmType")
+    @ResponseBody
+    public List<Map> getVpmType(){
+        return contextService.getVpmType();
+    }
+
+    @GetMapping("/getVpmDataGroup")
+    @ResponseBody
+    public List<DataGroup> getVpmDataGroup(){
+        return contextService.getVpmDataGroup();
+    }
+
+
+    //@Log(title = "用户管理", businessType = BusinessType.DELETE)
+    @PostMapping("/remove")
+    @ResponseBody
+    public AjaxResult removeAccess(String ids)
+    {
+        try
+        {
+            File file = new File(exportPath);
+            String fileName = "";
+            for (File exportFile : file.listFiles()) {
+                fileName = exportFile.getName();
+                //>20min 删除
+            }
+            if(StringUtils.isEmpty(fileName)){
+                //调用cmd生成
+            }
+            return toAjax(contextService.deleteAccess(ids,exportPath,fileName));
+        }
+        catch (Exception e)
+        {
+            return error(e.getMessage());
+        }
     }
 }

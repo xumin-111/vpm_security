@@ -24,4 +24,6 @@ public interface ISysContextService {
     int insertAccess(Access access,String exportFile,String exportPath);
 
     VpmContext getContextByName(String contextId);
+
+    int deleteAccess(String ids,String exportPath,String fileName);
 }
