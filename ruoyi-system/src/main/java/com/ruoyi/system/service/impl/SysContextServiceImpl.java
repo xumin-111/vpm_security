@@ -3,10 +3,7 @@ package com.ruoyi.system.service.impl;
 import com.ruoyi.common.core.domain.Ztree;
 import com.ruoyi.common.utils.StringUtils;
 import com.ruoyi.ctxCache.CtxMapCache;
-import com.ruoyi.system.domain.Access;
-import com.ruoyi.system.domain.DataGroup;
-import com.ruoyi.system.domain.VpmContext;
-import com.ruoyi.system.domain.VpmProcess;
+import com.ruoyi.system.domain.*;
 import com.ruoyi.system.service.ISysContextService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -69,7 +66,6 @@ public class SysContextServiceImpl implements ISysContextService {
                     }
                     if(strLine != null && strLine.startsWith("*PRIV") && lineCount > accessBeginLine){
                         Access access = new Access();
-                        access.setAccessId(strLine);
                         String accessStr = strLine.split(" ")[1];
                         if(accessStr.indexOf("CTX=") == -1){
                             //不是上下文的权限
@@ -147,6 +143,52 @@ public class SysContextServiceImpl implements ISysContextService {
     }
 
     @Override
+    public List<VpmContext> getContextList(VpmContext vpmContextParam, String exportPath) {
+        List<VpmContext> contextList = new ArrayList<>();
+        List<VpmContext> contexListCache = (List<VpmContext>) ctxMapCache.get("ctxList");
+        if (contexListCache == null || contexListCache.size() == 0) {
+            BufferedReader bufferedReader = null;
+            try {
+                File file = new File(exportPath);
+                bufferedReader = new BufferedReader(new FileReader(file));
+                String strLine = null;
+                int lineCount = 1;
+                int ctxBeginLine = 100000;
+                int accessBeginLine = 100000;
+                while (null != (strLine = bufferedReader.readLine())) {
+                    if (strLine != null && strLine.indexOf("RscContext") != -1) {
+                        ctxBeginLine = lineCount;
+                    }
+                    if (strLine != null && strLine.startsWith("*CTX") && lineCount > ctxBeginLine) {
+                        strLine = strLine.substring("*CTX ".length()).replaceAll(";", ".");
+                        VpmContext ctx = new VpmContext();
+                        ctx.setContextName(strLine);
+                        ctx.setContextProject(strLine.split("\\.")[2]);
+                        ctx.setContextOrganization(strLine.split("\\.")[1]);
+                        ctx.setContextRole(strLine.split("\\.")[0]);
+                        contextList.add(ctx);
+                        logger.debug("第[" + lineCount + "]行context数据:[" + strLine + "]");
+                    }
+                    lineCount++;
+                }
+                ctxMapCache.add("ctxList", contextList, 60 * 1000 * 5);
+            } catch (Exception e) {
+                e.printStackTrace();
+            } finally {
+                try {
+                    if (bufferedReader != null)
+                        bufferedReader.close();//关闭读取缓冲区
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        } else {
+            contextList = contexListCache;
+        }
+        return contextList;
+    }
+
+    @Override
     public List<VpmContext> getVpmContextList() {
         List<VpmContext> ctxListCache = (List<VpmContext>) ctxMapCache.get("ctxList");
         if(ctxListCache == null || ctxListCache.size() == 0){
@@ -162,6 +204,9 @@ public class SysContextServiceImpl implements ISysContextService {
         Set<String> ctxTypes = new HashSet<>();
         List<DataGroup> dataGroups = new ArrayList<>();
         List<VpmProcess> vpmProcesses = new ArrayList<>();
+        List<Project> dataProjects = new ArrayList<>();
+        List<SysRole> dataRoles = new ArrayList<>();
+        List<Organization> dataOrganizations = new ArrayList<>();
         BufferedReader bufferedReader = null;
         try {
             File file = new File(exportPath);
@@ -171,6 +216,9 @@ public class SysContextServiceImpl implements ISysContextService {
             int ctxBeginLine = 100000;
             int processBeginLine = 100000;
             int dataBeginLine = 100000;
+            int projectBeginLine = 100000;
+            int roleBeginLine = 100000;
+            int organizationBeginLine = 100000;
             int currentProGroup = 0;
             while(null != (strLine = bufferedReader.readLine())){
                 if(strLine != null && strLine.indexOf("RscContext") != -1){
@@ -228,13 +276,49 @@ public class SysContextServiceImpl implements ISysContextService {
                     dataGroup.setDataValue(dataStr.split(";")[1]+";"+dataStr.split(";")[0]);
                     dataGroups.add(dataGroup);
                 }
+                //读取项目信息
+                if (strLine != null && strLine.indexOf("RscProject list") != -1) {
+                    projectBeginLine = lineCount;
+                }
+                if (strLine != null && strLine.startsWith("*PRJ") && lineCount > projectBeginLine) {
+                    strLine = strLine.substring("*PRJ".length());
+                    String projectName = strLine.split(";")[0].trim();
+                    Project project = new Project();
+                    project.setProjectNumber(projectName);
+                    dataProjects.add(project);
+                }
+                //读取角色信息
+                if (strLine != null && strLine.indexOf("RscRole list") != -1) {
+                    roleBeginLine = lineCount;
+                }
+                if (strLine != null && strLine.startsWith("*ROLE") && lineCount > roleBeginLine) {
+                    strLine = strLine.substring("*ROLE".length());
+                    String roleName = strLine.split(";")[0].trim();
+                    SysRole sysRole = new SysRole();
+                    sysRole.setRoleName(roleName);
+                    dataRoles.add(sysRole);
+                }
+                //读取组织信息
+                if (strLine != null && strLine.indexOf("RscOrg list") != -1) {
+                    organizationBeginLine = lineCount;
+                }
+                if (strLine != null && strLine.startsWith("*ORG") && lineCount > organizationBeginLine) {
+                    strLine = strLine.substring("*ORG".length());
+                    String organizationName = strLine.split(";")[0].trim();
+                    Organization organization = new Organization();
+                    organization.setDepartmentNumber(organizationName);
+                    dataOrganizations.add(organization);
+                }
                 lineCount++;
             }
-            ctxMapCache.add("ctxList",ctxNames,60 * 1000 * 5);
-            ctxMapCache.add("ctxTypes",ctxTypes,60 * 1000 * 5);
-            ctxMapCache.add("vpmProcesses",vpmProcesses,60 * 1000 * 5);
-            ctxMapCache.add("dataGroups",dataGroups,60 * 1000 * 5);
-        }catch(Exception e){
+            ctxMapCache.add("ctxList", ctxNames, 60 * 1000 * 5);
+            ctxMapCache.add("ctxTypes", ctxTypes, 60 * 1000 * 5);
+            ctxMapCache.add("vpmProcesses", vpmProcesses, 60 * 1000 * 5);
+            ctxMapCache.add("dataGroups", dataGroups, 60 * 1000 * 5);
+            ctxMapCache.add("dataProjects", dataProjects, 60 * 1000 * 5);
+            ctxMapCache.add("dataRoles", dataRoles, 60 * 1000 * 5);
+            ctxMapCache.add("dataOrganizations", dataOrganizations, 60 * 1000 * 5);
+        } catch (Exception e) {
             e.printStackTrace();
         }finally {
             try {
@@ -274,6 +358,33 @@ public class SysContextServiceImpl implements ISysContextService {
         List<DataGroup> ctxDataGroupsCache = (List<DataGroup>) ctxMapCache.get("dataGroups");
         if(ctxDataGroupsCache == null || ctxDataGroupsCache.size() == 0){
             logger.info("info=========================：缓存中没有数据组列表");
+        }
+        return ctxDataGroupsCache;
+    }
+
+    @Override
+    public List<Project> getVpmDataProject() {
+        List<Project> ctxDataGroupsCache = (List<Project>) ctxMapCache.get("dataProjects");
+        if (ctxDataGroupsCache == null || ctxDataGroupsCache.size() == 0) {
+            logger.info("info=========================：缓存中没有项目列表");
+        }
+        return ctxDataGroupsCache;
+    }
+
+    @Override
+    public List<SysRole> getVpmDataRole() {
+        List<SysRole> ctxDataGroupsCache = (List<SysRole>) ctxMapCache.get("dataRoles");
+        if (ctxDataGroupsCache == null || ctxDataGroupsCache.size() == 0) {
+            logger.info("info=========================：缓存中没有角色列表");
+        }
+        return ctxDataGroupsCache;
+    }
+
+    @Override
+    public List<Organization> getVpmDataOrganization() {
+        List<Organization> ctxDataGroupsCache = (List<Organization>) ctxMapCache.get("dataOrganizations");
+        if (ctxDataGroupsCache == null || ctxDataGroupsCache.size() == 0) {
+            logger.info("info=========================：缓存中没有组织列表");
         }
         return ctxDataGroupsCache;
     }
@@ -326,7 +437,6 @@ public class SysContextServiceImpl implements ISysContextService {
 
                 if(line != null && line.startsWith("*PRIV")){
                     Access accessRead = new Access();
-                    accessRead.setAccessId(line);
                     String accessStr = line.split(" ")[1];
                     if(accessStr.indexOf("CTX=") == -1){
                         //不是上下文的权限
@@ -398,7 +508,6 @@ public class SysContextServiceImpl implements ISysContextService {
 
         //更新旧的权限
         Access accessIn = new Access();
-        accessIn.setAccessId(addAccessStr.toString());
         accessIn.setContextName(access.getContextName());
         accessIn.setAccessType(access.getAccessType());
         accessIn.setActionGroup(access.getActionGroup());
@@ -407,6 +516,86 @@ public class SysContextServiceImpl implements ISysContextService {
         }
         mainAccessList.add(accessIn);
         ctxMapCache.add("mainAccessList",mainAccessList,60 * 1000 * 5);
+
+        //todo dumplinmg 调用cmd导入更新后的文件
+        return 1;
+    }
+
+
+    /**
+     * 缓存中更新上下文列表（ctxList），生成新的导入文件，完成导入
+     *
+     * @param
+     * @return
+     */
+    @Override
+    public int insertContext(VpmContext vpmContext, String exportPath, String exportFileName) {
+        //更新文件
+        FileInputStream fis = null;
+        InputStreamReader isr = null;
+        BufferedReader bReader = null;
+        OutputStreamWriter osw = null;
+        FileOutputStream fos = null;
+        BufferedWriter bWriter = null;
+        List<String> ctxNames = new ArrayList<>();
+        List<VpmContext> contextList = new ArrayList<>();
+        String importFileName = exportFileName.split("_")[0] + "_" + new Date().getTime();
+        try {
+            String line;
+            fis = new FileInputStream(exportPath + "/" + exportFileName);//定义输入文件
+            fos = new FileOutputStream(exportPath + "/" + importFileName);//定义输出文件
+            isr = new InputStreamReader(fis);//读取输入文件
+            osw = new OutputStreamWriter(fos);//写入输入文件
+            bReader = new BufferedReader(isr);//读取缓冲区
+            bWriter = new BufferedWriter(osw);//写入缓存区
+            StringBuffer addContextStr = new StringBuffer("*CTX ");
+            addContextStr.append(vpmContext.getContextName()).append("\r\n");
+            if (StringUtils.isNotEmpty(vpmContext.getAddPersonList())) {
+                addContextStr.append("+Person " + vpmContext.getAddPersonList());
+            }
+            int lineCount = 1;
+            int endPrivline = 100000;
+            while ((line = bReader.readLine()) != null) { //按行读取数据
+                String wrtiteStr = line;
+                if (line != null && line.startsWith("*CTX")) {
+                    line = line.substring("*CTX ".length());
+                    ctxNames.add(line);
+                    endPrivline = lineCount;
+                }
+                if (line.startsWith("+PERSON") || line.startsWith("+MASK") || line.startsWith("*CTX")) {
+                    endPrivline = lineCount;
+                }
+                if (lineCount == endPrivline + 1) {
+                    bWriter.write(addContextStr.toString() + "\r\n");
+                }
+                bWriter.write(wrtiteStr + "\r\n");//将拼结果按行写入出入文件中
+                lineCount++;
+            }
+        } catch (FileNotFoundException e) {
+            System.out.println("找不到文件");
+        } catch (IOException e) {
+            System.out.println("读取文件失败");
+        } finally {
+            try {
+                bReader.close();//关闭读取缓冲区
+                isr.close();//关闭读取文件内容
+                fis.close();//关闭读取文件
+                bWriter.close();//关闭写入缓存区
+                osw.close();//关闭写入文件内容
+                fos.close();//关闭写入文件
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+        //删除原来的文件
+        File oldFile = new File(exportPath + "/" + exportFileName);
+        if (oldFile.exists()) {
+            oldFile.delete();
+        }
+
+        //更新旧的上下文
+        contextList.add(vpmContext);
+        ctxMapCache.add("ctxList", contextList, 60 * 1000 * 5);
 
         //todo dumplinmg 调用cmd导入更新后的文件
         return 1;

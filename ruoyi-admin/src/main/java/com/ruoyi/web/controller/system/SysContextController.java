@@ -20,7 +20,6 @@ import org.springframework.web.bind.annotation.*;
 
 import java.io.File;
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
@@ -58,13 +57,13 @@ public class SysContextController extends BaseController {
         //判断ctx文件生成时间，超过20分钟重新导出
         File file = new File(exportPath);
         String fileName = "";
-        while(true){
-            if(file.listFiles().length > 0){
+        while (true) {
+            if (file.listFiles().length > 0) {
                 break;
             }
             try {
                 Thread.sleep(500);
-            }catch (InterruptedException e) {
+            } catch (InterruptedException e) {
                 e.printStackTrace();
             }
         }
@@ -72,7 +71,7 @@ public class SysContextController extends BaseController {
             fileName = exportFile.getName();
             //>20min 删除
         }
-        if(StringUtils.isEmpty(fileName)){
+        if (StringUtils.isEmpty(fileName)) {
             //调用cmd生成
         }
         //todo dumpling每次获取列表时判断文件生成时间
@@ -90,24 +89,22 @@ public class SysContextController extends BaseController {
         return rspData;
     }
 
-
     /**
-     * 新增用户
+     * 新增上下文  同时在内存中初始化下拉菜单内容
      */
     @GetMapping("/add")
-    public String add(ModelMap mmap) {
-        Project project = new Project();
-        project.setProjectNumber("project001");
-        mmap.put("project", project);
-        SysRole sysRole = new SysRole();
-        sysRole.setRoleName("role001");
-        mmap.put("role", sysRole);
-        Organization organization = new Organization();
-        organization.setDepartmentNumber("dept001");
-        mmap.put("organization", organization);
-        //mmap.put("roles", roleService.selectRoleAll());
-        //mmap.put("posts", postService.selectPostAll());
-        System.out.println("11111");
+    public String add() {
+        File file = new File(exportPath);
+        String fileName = "";
+        for (File exportFile : file.listFiles()) {
+            fileName = exportFile.getName();
+            //>20min 删除
+        }
+        if (StringUtils.isEmpty(fileName)) {
+            //调用cmd生成
+        }
+        //初始化所有下拉菜单内容
+        contextService.initAllCtxSelect(exportPath + "/" + fileName);
         return prefix + "/add";
     }
 
@@ -290,6 +287,41 @@ public class SysContextController extends BaseController {
             }
         }
         return toAjax(contextService.insertAccess(access,exportPath,fileName));
+    }
+
+    /**
+     * 新增上下文保存
+     */
+    //@RequiresPermissions("system:user:add")
+    //@Log(title = "用户管理", businessType = BusinessType.INSERT)
+    @PostMapping("/add")
+    @ResponseBody
+    public AjaxResult addContextSave(@Validated VpmContext vpmContext) {
+        File file = new File(exportPath);
+        String fileName = "";
+        for (File exportFile : file.listFiles()) {
+            fileName = exportFile.getName();
+            //>20min 删除
+        }
+        if (StringUtils.isEmpty(fileName)) {
+            //调用cmd生成
+        }
+        vpmContext.setContextName(vpmContext.getContextRole() + ";" + vpmContext.getContextOrganization() + ";" + vpmContext.getContextProject());
+        List<VpmContext> contextList = contextService.getContextList(vpmContext, exportPath + "/" + fileName);
+        for (VpmContext pri : contextList) {
+            String contextName = pri.getContextName();
+            boolean flag = false;
+            if (StringUtils.isEmpty(contextName) && StringUtils.isEmpty(vpmContext.getContextName())) {
+                flag = true;
+            } else if (contextName != null && vpmContext.getContextName() != null && vpmContext.getContextName().indexOf(contextName) != -1) {
+                flag = true;
+            }
+            if (flag) {
+                return error("新增上下文失败失败，已存在");
+            }
+        }
+        return toAjax(contextService.insertContext(vpmContext, exportPath, fileName));
+        //return toAjax(1);
     }
 
     /**
