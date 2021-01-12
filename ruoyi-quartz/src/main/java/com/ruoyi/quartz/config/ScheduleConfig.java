@@ -1,10 +1,6 @@
 package com.ruoyi.quartz.config;
 
-import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.scheduling.quartz.SchedulerFactoryBean;
-import javax.sql.DataSource;
-import java.util.Properties;
 
 /**
  * 定时任务配置
@@ -14,7 +10,7 @@ import java.util.Properties;
 @Configuration
 public class ScheduleConfig
 {
-    @Bean
+    /*@Bean
     public SchedulerFactoryBean schedulerFactoryBean(DataSource dataSource)
     {
         SchedulerFactoryBean factory = new SchedulerFactoryBean();
@@ -53,5 +49,5 @@ public class ScheduleConfig
         factory.setAutoStartup(true);
 
         return factory;
-    }
+    }*/
 }
