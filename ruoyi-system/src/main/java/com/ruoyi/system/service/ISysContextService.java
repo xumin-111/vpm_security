@@ -32,4 +32,6 @@ public interface ISysContextService {
     List<SysRole> getVpmDataRole();
 
     List<Organization> getVpmDataOrganization();
+
+    int deleteAccess(String ids, String exportPath, String fileName);
 }
