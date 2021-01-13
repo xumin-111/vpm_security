@@ -19,6 +19,8 @@ public interface ISysContextService {
 
     List<Ztree> selectProcessTree(String param);
 
+    List<Ztree> selectPersonTree(String param);
+
     List<DataGroup> getVpmDataGroup();
 
     int insertAccess(Access access, String exportFile, String exportPath);

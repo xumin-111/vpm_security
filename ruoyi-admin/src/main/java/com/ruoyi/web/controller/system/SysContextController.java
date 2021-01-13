@@ -113,16 +113,18 @@ public class SysContextController extends BaseController {
     /**
      * 修改上下文
      */
-    @GetMapping("/editContext/{contextId}")
-    public String editContext(@PathVariable("contextId") String contextId, ModelMap mmap) {
+    @GetMapping("/editContext/{contextName}")
+    public String editContext(@PathVariable("contextName") String contextName, ModelMap mmap) {
+        System.out.println("contextName=========" + contextName);
+        String[] contextNameArr = contextName.split("\\.");
         Project project = new Project();
-        project.setProjectNumber("project001");
+        project.setProjectNumber(contextNameArr[2]);
         mmap.put("project", project);
         SysRole sysRole = new SysRole();
-        sysRole.setRoleName("role001");
+        sysRole.setRoleName(contextNameArr[0]);
         mmap.put("role", sysRole);
         Organization organization = new Organization();
-        organization.setDepartmentNumber("dept001");
+        organization.setDepartmentNumber(contextNameArr[1]);
         mmap.put("organization", organization);
         //mmap.put("user", userService.selectUserById(userId));
         //mmap.put("roles", roleService.selectRolesByUserId(userId));
@@ -248,7 +250,7 @@ public class SysContextController extends BaseController {
         if (StringUtils.isEmpty(fileName)) {
             //调用cmd生成
         }
-        vpmContext.setContextName(vpmContext.getContextRole() + ";" + vpmContext.getContextOrganization() + ";" + vpmContext.getContextProject());
+        vpmContext.setContextName(vpmContext.getContextRole() + "." + vpmContext.getContextOrganization() + "." + vpmContext.getContextProject());
         List<VpmContext> contextList = contextService.getContextList(vpmContext, exportPath + "/" + fileName);
         for (VpmContext pri : contextList) {
             String contextName = pri.getContextName();
@@ -302,6 +304,24 @@ public class SysContextController extends BaseController {
     @ResponseBody
     public List<Ztree> treeData() {
         List<Ztree> ztrees = contextService.selectProcessTree(null);
+        return ztrees;
+    }
+
+    /**
+     * 选择人员
+     */
+    @GetMapping("/selectPersonTree")
+    public String selectPersonTree() {
+        return prefix + "/personTree";
+    }
+
+    /**
+     * 加载人员操作列表树
+     */
+    @GetMapping("/personTreeData")
+    @ResponseBody
+    public List<Ztree> personTreeData() {
+        List<Ztree> ztrees = contextService.selectPersonTree(null);
         return ztrees;
     }
 }

@@ -206,6 +206,7 @@ public class SysContextServiceImpl implements ISysContextService {
         List<VpmProcess> vpmProcesses = new ArrayList<>();
         List<Project> dataProjects = new ArrayList<>();
         List<SysRole> dataRoles = new ArrayList<>();
+        List<User> dataUsers = new ArrayList<>();
         List<Organization> dataOrganizations = new ArrayList<>();
         BufferedReader bufferedReader = null;
         try {
@@ -219,6 +220,7 @@ public class SysContextServiceImpl implements ISysContextService {
             int projectBeginLine = 100000;
             int roleBeginLine = 100000;
             int organizationBeginLine = 100000;
+            int personBeginLine = 100000;
             int currentProGroup = 0;
             while (null != (strLine = bufferedReader.readLine())) {
                 if (strLine != null && strLine.indexOf("RscContext") != -1) {
@@ -308,6 +310,17 @@ public class SysContextServiceImpl implements ISysContextService {
                     organization.setDepartmentNumber(organizationName);
                     dataOrganizations.add(organization);
                 }
+                //读取人员信息
+                if (strLine != null && strLine.indexOf("RscPerson list") != -1) {
+                    personBeginLine = lineCount;
+                }
+                if (strLine != null && strLine.startsWith("*PERSON") && lineCount > personBeginLine) {
+                    strLine = strLine.substring("*PERSON".length());
+                    String userName = strLine.split(";")[0].trim();
+                    User user = new User();
+                    user.setUserFullName(userName);
+                    dataUsers.add(user);
+                }
                 lineCount++;
             }
             ctxMapCache.add("ctxList", ctxNames, 60 * 1000 * 5);
@@ -316,6 +329,7 @@ public class SysContextServiceImpl implements ISysContextService {
             ctxMapCache.add("dataGroups", dataGroups, 60 * 1000 * 5);
             ctxMapCache.add("dataProjects", dataProjects, 60 * 1000 * 5);
             ctxMapCache.add("dataRoles", dataRoles, 60 * 1000 * 5);
+            ctxMapCache.add("dataUsers", dataUsers, 60 * 1000 * 5);
             ctxMapCache.add("dataOrganizations", dataOrganizations, 60 * 1000 * 5);
         } catch (Exception e) {
             e.printStackTrace();
@@ -349,6 +363,13 @@ public class SysContextServiceImpl implements ISysContextService {
     public List<Ztree> selectProcessTree(String o) {
         List<VpmProcess> processList = (List<VpmProcess>) ctxMapCache.get("vpmProcesses");
         List<Ztree> ztrees = initZtree(processList);
+        return ztrees;
+    }
+
+    @Override
+    public List<Ztree> selectPersonTree(String o) {
+        List<User> userList = (List<User>) ctxMapCache.get("dataUsers");
+        List<Ztree> ztrees = initUserZtree(userList);
         return ztrees;
     }
 
@@ -535,7 +556,6 @@ public class SysContextServiceImpl implements ISysContextService {
         OutputStreamWriter osw = null;
         FileOutputStream fos = null;
         BufferedWriter bWriter = null;
-        List<String> ctxNames = new ArrayList<>();
         List<VpmContext> contextList = new ArrayList<>();
         String importFileName = exportFileName.split("_")[0] + "_" + new Date().getTime();
         try {
@@ -549,15 +569,27 @@ public class SysContextServiceImpl implements ISysContextService {
             StringBuffer addContextStr = new StringBuffer("*CTX ");
             addContextStr.append(vpmContext.getContextName()).append("\r\n");
             if (StringUtils.isNotEmpty(vpmContext.getAddPersonList())) {
-                addContextStr.append("+Person " + vpmContext.getAddPersonList());
+                List<String> personList = vpmContext.getAddPersonList();
+                for (int i = 0; i < personList.size(); i++) {
+                    String[] personArr = personList.get(i).split(";");
+                    for (int j = 0; j < personArr.length; j++) {
+                        addContextStr.append("+Person " + personArr[j] + "\r\n");
+                    }
+                }
             }
             int lineCount = 1;
             int endPrivline = 100000;
             while ((line = bReader.readLine()) != null) { //按行读取数据
                 String wrtiteStr = line;
                 if (line != null && line.startsWith("*CTX")) {
-                    line = line.substring("*CTX ".length());
-                    ctxNames.add(line);
+                    line = line.substring("*CTX ".length()).replaceAll(";", ".");
+                    VpmContext ctx = new VpmContext();
+                    ctx.setContextName(line);
+                    ctx.setContextProject(line.split("\\.")[2]);
+                    ctx.setContextOrganization(line.split("\\.")[1]);
+                    ctx.setContextRole(line.split("\\.")[0]);
+                    //缓存增加context信息，key：contextName
+                    contextList.add(ctx);
                     endPrivline = lineCount;
                 }
                 if (line.startsWith("+PERSON") || line.startsWith("+MASK") || line.startsWith("*CTX")) {
@@ -615,6 +647,10 @@ public class SysContextServiceImpl implements ISysContextService {
         return initZtree(processList, null);
     }
 
+    private List<Ztree> initUserZtree(List<User> userList) {
+        return initUserZtree(userList, null);
+    }
+
     private List<Ztree> initZtree(List<VpmProcess> processList, List<String> roleDeptList) {
 
         List<Ztree> ztrees = new ArrayList<Ztree>();
@@ -625,6 +661,30 @@ public class SysContextServiceImpl implements ISysContextService {
             ztree.setpId((long) process.getProcessGroupId());
             ztree.setName(process.getProcessName());
             ztree.setTitle(process.getProcessName());
+            if (isCheck) {
+                //ztree.setChecked(roleDeptList.contains(dept.getDeptId() + dept.getDeptName()));
+            }
+            ztrees.add(ztree);
+        }
+        return ztrees;
+    }
+
+    private List<Ztree> initUserZtree(List<User> userList, List<String> roleDeptList) {
+
+        List<Ztree> ztrees = new ArrayList<Ztree>();
+        boolean isCheck = StringUtils.isNotNull(roleDeptList);
+        long i = 0;
+        Ztree z0tree = new Ztree();
+        z0tree.setId(i);
+        z0tree.setName("人员选择");
+        z0tree.setTitle("人员选择");
+        ztrees.add(z0tree);
+        for (User user : userList) {
+            Ztree ztree = new Ztree();
+            ztree.setId((long) ++i);
+            ztree.setpId((long) 0);
+            ztree.setName(user.getUserFullName());
+            ztree.setTitle(user.getUserFullName());
             if (isCheck) {
                 //ztree.setChecked(roleDeptList.contains(dept.getDeptId() + dept.getDeptName()));
             }
