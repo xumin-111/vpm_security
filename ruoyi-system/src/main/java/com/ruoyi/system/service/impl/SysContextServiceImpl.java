@@ -266,6 +266,7 @@ public class SysContextServiceImpl implements ISysContextService {
                     //类型集合
                     ctxTypes.add(proStr.split(";")[0]);
                 }
+
                 //读取数据组信息
                 if (strLine != null && strLine.indexOf("data_group list") != -1) {
                     dataBeginLine = lineCount;
@@ -426,7 +427,9 @@ public class SysContextServiceImpl implements ISysContextService {
         BufferedWriter bWriter = null;
         List<String> ctxNames = new ArrayList<>();
         List<Access> mainAccessList = new ArrayList<>();
-        String importFileName = exportFileName + "_" + new Date().getTime();
+        String exportFileNamePar = exportFileName.indexOf("_") == -1 ? exportFileName : exportFileName.split("_")[0];
+        String importFileName = exportFileNamePar + "_" + new Date().getTime();
+        StringBuffer addAccessStr = new StringBuffer("");
         try {
             String line;
             fis = new FileInputStream(exportPath + "/" + exportFileName);//定义输入文件
@@ -435,7 +438,7 @@ public class SysContextServiceImpl implements ISysContextService {
             osw = new OutputStreamWriter(fos);//写入输入文件
             bReader = new BufferedReader(isr);//读取缓冲区
             bWriter = new BufferedWriter(osw);//写入缓存区
-            StringBuffer addAccessStr = new StringBuffer("*PRIV 1;CTX=");
+            addAccessStr.append("*PRIV 1;CTX=");
             addAccessStr.append(access.getContextName());
             if (StringUtils.isNotEmpty(access.getAccessType())) {
                 addAccessStr.append(";PROCESS=" + access.getAccessType() + "." + access.getActionGroup());
@@ -642,6 +645,124 @@ public class SysContextServiceImpl implements ISysContextService {
         return null;
     }
 
+    /**
+     * 删除缓存中的权限（mainAccessList） 更新文件，重新导入
+     *
+     * @param ids
+     * @return
+     */
+    @Override
+    public int deleteAccess(String ids, String exportPath, String exportFileName) {
+        String[] accessIds = new String[]{};
+        if (ids != null) {
+            accessIds = ids.split(",");
+        }
+        //更新文件
+        FileInputStream fis = null;
+        InputStreamReader isr = null;
+        BufferedReader bReader = null;
+        OutputStreamWriter osw = null;
+        FileOutputStream fos = null;
+        BufferedWriter bWriter = null;
+        List<String> ctxNames = new ArrayList<>();
+        List<Access> mainAccessList = new ArrayList<>();
+        String exportFileNamePar = exportFileName.indexOf("_") == -1 ? exportFileName : exportFileName.split("_")[0];
+        String importFileName = exportFileNamePar + "_" + new Date().getTime();
+        try {
+            String line;
+            fis = new FileInputStream(exportPath + "/" + exportFileName);//定义输入文件
+            fos = new FileOutputStream(exportPath + "/" + importFileName);//定义输出文件
+            isr = new InputStreamReader(fis);//读取输入文件
+            osw = new OutputStreamWriter(fos);//写入输入文件
+            bReader = new BufferedReader(isr);//读取缓冲区
+            bWriter = new BufferedWriter(osw);//写入缓存区
+
+            while ((line = bReader.readLine()) != null) { //按行读取数据
+                String wrtiteStr = line;
+                if (line != null && line.startsWith("*CTX")) {
+                    line = line.substring("*CTX ".length()).replaceAll(";", ".");
+                    ctxNames.add(line);
+                }
+
+                if (line != null && line.startsWith("*PRIV")) {
+                    for (String accessLine : accessIds) {
+                        if (line.equals(accessLine)) {
+                            bWriter.write("");
+                        } else {
+                            Access accessRead = new Access();
+                            accessRead.setAccessId(line);
+                            String accessStr = line.split(" ")[1];
+                            if (accessStr.indexOf("CTX=") == -1) {
+                                //不是上下文的权限
+                                //continue;
+                            } else {
+                                String[] accessInfo = accessStr.split(";");
+                                //第一个数字暂时没用
+                                for (int i = 1; i < accessInfo.length; i++) {
+                                    if (accessInfo[i].contains("CTX=")) {
+                                        String ctxName = accessInfo[i].split("=")[1];
+                                        if (ctxNames.contains(ctxName)) {
+                                            ctxNames.remove(ctxName);
+                                        }
+                                        accessRead.setContextName(ctxName);
+                                    } else if (accessInfo[i].contains("PROCESS=")) {
+                                        String type = accessInfo[i].split("=")[1].split("\\.")[0];
+                                        String oper = accessInfo[i].split("=")[1].split("\\.")[1];
+                                        accessRead.setAccessType(type);
+                                        accessRead.setActionGroup(oper);
+                                    } else if (accessInfo[i].contains("PROCESS_GROUP=")) {
+                                        String operGroup = accessInfo[i].split("=")[1];
+                                        accessRead.setActionGroup(operGroup);
+                                    }
+
+                                    if (i == accessInfo.length - 2) {
+
+                                    }
+                                    if (i == accessInfo.length - 1 && !accessInfo[i].contains("PROCESS")) {
+                                        accessRead.setDataGroup(accessInfo[i]);
+                                    }
+                                }
+                                mainAccessList.add(accessRead);
+                            }
+                            bWriter.write(wrtiteStr + "\r\n");
+                        }
+                    }
+                } else {
+                    bWriter.write(wrtiteStr + "\r\n");
+                }
+            }
+            for (String ctxName : ctxNames) {
+                Access accessIn = new Access();
+                accessIn.setContextName(ctxName);
+                mainAccessList.add(accessIn);
+            }
+        } catch (FileNotFoundException e) {
+            System.out.println("找不到文件");
+        } catch (IOException e) {
+            System.out.println("读取文件失败");
+        } finally {
+            try {
+                bReader.close();//关闭读取缓冲区
+                isr.close();//关闭读取文件内容
+                fis.close();//关闭读取文件
+                bWriter.close();//关闭写入缓存区
+                osw.close();//关闭写入文件内容
+                fos.close();//关闭写入文件
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+        //删除原来的文件
+        File oldFile = new File(exportPath + "/" + exportFileName);
+        if (oldFile.exists()) {
+            oldFile.delete();
+        }
+        ctxMapCache.add("mainAccessList", mainAccessList, 60 * 1000 * 5);
+
+        //todo dumplinmg 调用cmd导入更新后的文件
+        return 1;
+    }
+
 
     private List<Ztree> initZtree(List<VpmProcess> processList) {
         return initZtree(processList, null);
@@ -669,27 +790,27 @@ public class SysContextServiceImpl implements ISysContextService {
         return ztrees;
     }
 
-    private List<Ztree> initUserZtree(List<User> userList, List<String> roleDeptList) {
+        private List<Ztree> initUserZtree (List < User > userList, List < String > roleDeptList){
 
-        List<Ztree> ztrees = new ArrayList<Ztree>();
-        boolean isCheck = StringUtils.isNotNull(roleDeptList);
-        long i = 0;
-        Ztree z0tree = new Ztree();
-        z0tree.setId(i);
-        z0tree.setName("人员选择");
-        z0tree.setTitle("人员选择");
-        ztrees.add(z0tree);
-        for (User user : userList) {
-            Ztree ztree = new Ztree();
-            ztree.setId((long) ++i);
-            ztree.setpId((long) 0);
-            ztree.setName(user.getUserFullName());
-            ztree.setTitle(user.getUserFullName());
-            if (isCheck) {
-                //ztree.setChecked(roleDeptList.contains(dept.getDeptId() + dept.getDeptName()));
+            List<Ztree> ztrees = new ArrayList<Ztree>();
+            boolean isCheck = StringUtils.isNotNull(roleDeptList);
+            long i = 0;
+            Ztree z0tree = new Ztree();
+            z0tree.setId(i);
+            z0tree.setName("人员选择");
+            z0tree.setTitle("人员选择");
+            ztrees.add(z0tree);
+            for (User user : userList) {
+                Ztree ztree = new Ztree();
+                ztree.setId((long) ++i);
+                ztree.setpId((long) 0);
+                ztree.setName(user.getUserFullName());
+                ztree.setTitle(user.getUserFullName());
+                if (isCheck) {
+                    //ztree.setChecked(roleDeptList.contains(dept.getDeptId() + dept.getDeptName()));
+                }
+                ztrees.add(ztree);
             }
-            ztrees.add(ztree);
+            return ztrees;
         }
-        return ztrees;
     }
-}
