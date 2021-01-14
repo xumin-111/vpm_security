@@ -28,6 +28,11 @@ public class Event {
     private String object;
 
     /**
+     * 操作对象密级
+     */
+    private String objectSecret;
+
+    /**
      * 操作类型
      */
     private String type;
@@ -122,5 +127,13 @@ public class Event {
 
     public void setEndDate(String endDate) {
         this.endDate = endDate;
+    }
+
+    public String getObjectSecret() {
+        return objectSecret;
+    }
+
+    public void setObjectSecret(String objectSecret) {
+        this.objectSecret = objectSecret;
     }
 }

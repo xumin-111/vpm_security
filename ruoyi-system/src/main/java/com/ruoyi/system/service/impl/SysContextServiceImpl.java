@@ -774,6 +774,7 @@ public class SysContextServiceImpl implements ISysContextService {
 
     private List<Ztree> initZtree(List<VpmProcess> processList, List<String> roleDeptList) {
 
+
         List<Ztree> ztrees = new ArrayList<Ztree>();
         boolean isCheck = StringUtils.isNotNull(roleDeptList);
         for (VpmProcess process : processList) {
@@ -790,27 +791,27 @@ public class SysContextServiceImpl implements ISysContextService {
         return ztrees;
     }
 
-        private List<Ztree> initUserZtree (List < User > userList, List < String > roleDeptList){
+    private List<Ztree> initUserZtree(List<User> userList, List<String> roleDeptList) {
 
-            List<Ztree> ztrees = new ArrayList<Ztree>();
-            boolean isCheck = StringUtils.isNotNull(roleDeptList);
-            long i = 0;
-            Ztree z0tree = new Ztree();
-            z0tree.setId(i);
-            z0tree.setName("人员选择");
-            z0tree.setTitle("人员选择");
-            ztrees.add(z0tree);
-            for (User user : userList) {
-                Ztree ztree = new Ztree();
-                ztree.setId((long) ++i);
-                ztree.setpId((long) 0);
-                ztree.setName(user.getUserFullName());
-                ztree.setTitle(user.getUserFullName());
-                if (isCheck) {
-                    //ztree.setChecked(roleDeptList.contains(dept.getDeptId() + dept.getDeptName()));
-                }
-                ztrees.add(ztree);
+        List<Ztree> ztrees = new ArrayList<Ztree>();
+        boolean isCheck = StringUtils.isNotNull(roleDeptList);
+        long i = 0;
+        Ztree z0tree = new Ztree();
+        z0tree.setId(i);
+        z0tree.setName("人员选择");
+        z0tree.setTitle("人员选择");
+        ztrees.add(z0tree);
+        for (User user : userList) {
+            Ztree ztree = new Ztree();
+            ztree.setId((long) ++i);
+            ztree.setpId((long) 0);
+            ztree.setName(user.getUserFullName());
+            ztree.setTitle(user.getUserFullName());
+            if (isCheck) {
+                //ztree.setChecked(roleDeptList.contains(dept.getDeptId() + dept.getDeptName()));
             }
-            return ztrees;
+            ztrees.add(ztree);
         }
+        return ztrees;
     }
+}
