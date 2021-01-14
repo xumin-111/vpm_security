@@ -1,11 +1,13 @@
 package com.ruoyi.web.controller.system;
 
+import com.ruoyi.common.annotation.Log;
 import com.ruoyi.common.core.controller.BaseController;
 import com.ruoyi.common.core.domain.AjaxResult;
 import com.ruoyi.common.core.domain.Ztree;
 import com.ruoyi.common.core.page.PageDomain;
 import com.ruoyi.common.core.page.TableDataInfo;
 import com.ruoyi.common.core.page.TableSupport;
+import com.ruoyi.common.enums.BusinessType;
 import com.ruoyi.common.utils.StringUtils;
 import com.ruoyi.system.domain.*;
 import com.ruoyi.system.service.ISysContextService;
@@ -296,7 +298,7 @@ public class SysContextController extends BaseController {
      * 新增上下文保存
      */
     //@RequiresPermissions("system:user:add")
-    //@Log(title = "用户管理", businessType = BusinessType.INSERT)
+    @Log(title = "新增上下文", businessType = BusinessType.INSERT, actionType = "上下文")
     @PostMapping("/add")
     @ResponseBody
     public AjaxResult addContextSave(@Validated VpmContext vpmContext) {
@@ -320,7 +322,7 @@ public class SysContextController extends BaseController {
                 flag = true;
             }
             if (flag) {
-                return error("新增上下文失败失败，已存在");
+                return error("新增上下文 " + contextName + " 失败，已存在");
             }
         }
         return toAjax(contextService.insertContext(vpmContext, exportPath, fileName));
