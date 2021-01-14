@@ -7,6 +7,7 @@ import com.ruoyi.common.core.page.PageDomain;
 import com.ruoyi.common.core.page.TableDataInfo;
 import com.ruoyi.common.core.page.TableSupport;
 import com.ruoyi.common.enums.BusinessType;
+import com.ruoyi.common.utils.DesUtils;
 import com.ruoyi.system.domain.*;
 import com.ruoyi.system.mapper.SysOperLogMapper;
 import com.ruoyi.system.service.ISysLogininforService;
@@ -85,15 +86,15 @@ public class SysEventController extends BaseController {
             for (int i = 0; i < sysOperLogList.size(); i++) {
                 SysOperLog sysOperLog = sysOperLogList.get(i);
                 Event eventOne = new Event();
-                eventOne.setUserName(sysOperLog.getOperName());
+                eventOne.setUserName(DesUtils.decrypt(sysOperLog.getOperName(), "Qwerty12345"));
                 eventOne.setUserSecret("秘密");
-                eventOne.setIp(sysOperLog.getOperIp());
+                eventOne.setIp(DesUtils.decrypt(sysOperLog.getOperIp(), "Qwerty12345"));
                 eventOne.setObject(getObjectName(sysOperLog));
                 eventOne.setObjectSecret("");
-                eventOne.setType(sysOperLog.getTitle());
+                eventOne.setType(DesUtils.decrypt(sysOperLog.getTitle(), "Qwerty12345"));
                 eventOne.setLevel("1");
                 eventOne.setBeginDate(getFormateDate(sysOperLog.getOperTime()));
-                eventOne.setDescription(sysOperLog.getJsonResult());
+                eventOne.setDescription(DesUtils.decrypt(sysOperLog.getJsonResult(), "Qwerty12345"));
                 eventList.add(eventOne);
             }
             for (int i = 0; i < selectLogininforList.size(); i++) {
@@ -129,8 +130,8 @@ public class SysEventController extends BaseController {
     }
 
     public String getObjectName(SysOperLog sysOperLog) {
-        if (sysOperLog.getMethod().equals("上下文")) {
-            String operParam = sysOperLog.getOperParam();
+        if ((DesUtils.decrypt(sysOperLog.getMethod(), "Qwerty12345")).equals("上下文")) {
+            String operParam = DesUtils.decrypt(sysOperLog.getOperParam(), "Qwerty12345");
             //System.out.println("===========================" + operParam);
             JSONObject jsonObject = JSONObject.parseObject(operParam);
             //jsonObject.value(operParam);
@@ -139,7 +140,7 @@ public class SysEventController extends BaseController {
             String contextProject = jsonObject.get("contextProject").toString();
             return "上下文" + removeSymbol(contextRole) + "." + removeSymbol(contextOrganization) + "." + removeSymbol(contextProject);
         }
-        return sysOperLog.getMethod();
+        return (DesUtils.decrypt(sysOperLog.getMethod(), "Qwerty12345"));
     }
 
 
