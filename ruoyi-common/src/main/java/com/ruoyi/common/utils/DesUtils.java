@@ -18,7 +18,7 @@ import java.security.SecureRandom;
  */
 
 public class DesUtils {
-    private final static String DES = "DES";
+    private final static String DES = "DES/ECB/PKCS5Padding";
 
     /**
      * Description 根据键值进行加密
