@@ -35,15 +35,23 @@ public class NoticeController {
             SysPasswordPolicy passwordPolicy = iSysPasswordPolicyService.checkPasswordPolicyUnique(null);
             Integer changePeriod = passwordPolicy.getChangePeriod();
             Date expireDate = userPasswordPolicyService.selectExpireDateByUserId(user.getUserId());
-            Date date = new Date();
             if(expireDate != null){
                 LocalDateTime localDateTime = new Timestamp(expireDate.getTime()).toLocalDateTime();
-                Duration duration = Duration.between(localDateTime, LocalDateTime.now());
-                long days = duration.toDays();
-                if(days <= 2){
-                    String msg = changePeriod+"天未修改密码，请修改";
+                if(LocalDateTime.now().isAfter(localDateTime)){
+                    Duration duration = Duration.between(localDateTime, LocalDateTime.now());
+                    long l = duration.toDays();
+                    long days = l+changePeriod;
+                    String msg = days+"天未修改密码，请修改";
                     return msg;
+                }else{
+                    Duration duration = Duration.between(localDateTime, LocalDateTime.now());
+                    long days = duration.toDays();
+                    if(days <= 2){
+                        String msg = (changePeriod-days)+"天未修改密码，请修改";
+                        return msg;
+                    }
                 }
+
             }
         } catch (Exception e) {
             e.printStackTrace();
