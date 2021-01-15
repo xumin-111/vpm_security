@@ -6,7 +6,7 @@ import com.ruoyi.common.utils.StringUtils;
 /**
  * 定时任务调度测试
  * 
- * @author ruoyi
+ * @author dumpling
  */
 @Component("ryTask")
 public class RyTask
@@ -24,5 +24,16 @@ public class RyTask
     public void ryNoParams()
     {
         System.out.println("执行无参方法");
+    }
+
+    /**
+     * 转存日志task
+     */
+    public void logPolicyTask(){
+        System.out.println("....................................logPolicyTask.....");
+        //todo zhouhao 查询sys_job_log 条件job_group，最新的时间即上次转存的时间
+        //跟sys_job的remark比较，符合条件 执行转存
+        //导出文件
+        //删除表记录
     }
 }

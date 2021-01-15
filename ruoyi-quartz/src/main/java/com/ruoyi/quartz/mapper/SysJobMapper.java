@@ -64,4 +64,6 @@ public interface SysJobMapper
      * @return 结果
      */
     public int insertJob(SysJob job);
+
+    SysJob selectJobByGroup(String group);
 }

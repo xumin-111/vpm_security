@@ -48,7 +48,7 @@ public class BatchExecuteUtil {
     }
 
 
-    public static void createPassPolicyBatchAndExecute(Integer maxPsLength,Integer minPsLength,Integer changePeriod,Integer allowWrongCount,Integer complexity,String batchPath){
+    public static void createPassPolicyBatchAndExecute(Integer minPsLength,Integer maxPsLength,Integer changePeriod,Integer allowWrongCount,Integer complexity,String batchPath){
         //生成文件
         String fileName = "policy.bat";
         String pathMark = batchPath+"/"+new Date().getTime()+"";
@@ -96,11 +96,11 @@ public class BatchExecuteUtil {
         exeCmd(pathMark+"/"+fileName);
     }
 
-
+    /*
     public static void main(String[] args) {
         //String s = callCmd("cmd.exe /C start /b C:\\Users\\MrDumpling\\Desktop\\aa.bat");
         //exeCmd("C:\\Users\\MrDumpling\\Desktop\\policy.bat");
         //System.out.println("xx..."+s);
         createPassPolicyBatchAndExecute(1,1,1,1,1,"D:/vpmSecurity/passwordPolicy");
-    }
+    }*/
 }
