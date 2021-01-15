@@ -10,6 +10,7 @@ import com.ruoyi.framework.manager.factory.AsyncFactory;
 import com.ruoyi.system.domain.SysUser;
 import com.ruoyi.system.service.ISysPasswordPolicyService;
 import com.ruoyi.system.service.ISysUserService;
+import com.ruoyi.system.service.IUserPasswordPolicyService;
 import org.apache.shiro.cache.Cache;
 import org.apache.shiro.cache.CacheManager;
 import org.apache.shiro.crypto.hash.Md5Hash;
@@ -34,6 +35,9 @@ public class SysPasswordService
 
     @Autowired
     private ISysPasswordPolicyService iSysPasswordPolicyService;
+
+    @Autowired
+    private IUserPasswordPolicyService userPasswordPolicyService;
 
     @Autowired
     private ISysUserService userService;
@@ -66,6 +70,13 @@ public class SysPasswordService
             lockUser.setUserId(user.getUserId());
             lockUser.setStatus("1");
             userService.changeStatus(lockUser);
+
+            //保存用户锁定时间
+/*            UserPasswordPolicy userPasswordPolicy = new UserPasswordPolicy();
+            userPasswordPolicy.setUserId(user.getUserId());
+            Date now = new Date();
+            userPasswordPolicy.setLockTime(now);
+            userPasswordPolicyService.updateUserPasswordPolicy(userPasswordPolicy);*/
 
             AsyncManager.me().execute(AsyncFactory.recordLogininfor(loginName, Constants.LOGIN_FAIL, MessageUtils.message("user.password.retry.limit.exceed", maxRetryCount)));
             throw new UserPasswordRetryLimitExceedException(Integer.valueOf(maxRetryCount).intValue());

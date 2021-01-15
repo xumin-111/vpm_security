@@ -6,7 +6,12 @@ package com.ruoyi.system.domain;
  * @create 2020-12-21 16:32
  */
 
-public class Log {
+public class LogPolicy {
+
+    /**
+     * jobId
+     */
+    private Long jobId;
 
     /**
      * 审计日志周期
@@ -32,5 +37,13 @@ public class Log {
 
     public void setRelativelyAll(String relativelyAll) {
         this.relativelyAll = relativelyAll;
+    }
+
+    public Long getJobId() {
+        return jobId;
+    }
+
+    public void setJobId(Long jobId) {
+        this.jobId = jobId;
     }
 }

@@ -196,7 +196,7 @@ public class SysJobServiceImpl implements ISysJobService
     @Transactional
     public int insertJob(SysJob job) throws SchedulerException, TaskException
     {
-        job.setStatus(ScheduleConstants.Status.PAUSE.getValue());
+        //job.setStatus(ScheduleConstants.Status.PAUSE.getValue());
         int rows = jobMapper.insertJob(job);
         if (rows > 0)
         {
@@ -252,5 +252,15 @@ public class SysJobServiceImpl implements ISysJobService
     public boolean checkCronExpressionIsValid(String cronExpression)
     {
         return CronUtils.isValid(cronExpression);
+    }
+
+    @Override
+    public SysJob selectJobByGroup(String group) {
+        return jobMapper.selectJobByGroup(group);
+    }
+
+    @Override
+    public int updateJobOnly(SysJob job) {
+        return jobMapper.updateJob(job);
     }
 }

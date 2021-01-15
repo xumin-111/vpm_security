@@ -4,6 +4,7 @@ import com.ruoyi.common.annotation.Log;
 import com.ruoyi.common.core.controller.BaseController;
 import com.ruoyi.common.core.domain.AjaxResult;
 import com.ruoyi.common.enums.BusinessType;
+import com.ruoyi.common.utils.BatchExecuteUtil;
 import com.ruoyi.framework.util.ShiroUtils;
 import com.ruoyi.system.domain.SysPasswordPolicy;
 import com.ruoyi.system.domain.SysUser;
@@ -11,6 +12,7 @@ import com.ruoyi.system.domain.UserPasswordPolicy;
 import com.ruoyi.system.service.ISysPasswordPolicyService;
 import com.ruoyi.system.service.IUserPasswordPolicyService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -29,6 +31,9 @@ public class SysPasswordPolicyController extends BaseController {
 
     @Autowired
     private IUserPasswordPolicyService userPasswordPolicyService;
+
+    @Value(value = "${ctxFile.batchPath}")
+    private String batchPath;
     /**
      * 修改或新增密码策略
      */
@@ -61,6 +66,9 @@ public class SysPasswordPolicyController extends BaseController {
 
             return toAjax(iSysPasswordPolicyService.updatePasswordPolicy(policy));
         }
+        //修改系统密码策略
+        BatchExecuteUtil.createPassPolicyBatchAndExecute(policy.getMinPsLength(),policy.getMaxPsLength(),policy.getChangePeriod(),
+                policy.getAllowWrongCount(),policy.getComplexity(),batchPath);
         //新增密码策略
         policy.setCreateBy(ShiroUtils.getLoginName());
         return toAjax(iSysPasswordPolicyService.insertPasswordPolicy(policy));

@@ -54,30 +54,33 @@
 <script type="text/javascript">
 	var prefix = ctx + "system/password";
 
+	//校验正整数
+	jQuery.validator.addMethod("positiveinteger", function(value,element) {
+		var aint=parseInt(value);
+		return aint >= 0 && (aint+"") == value;
+	}, "请输入自然数");
+
 	$("#form-password-add").validate({
 		onkeyup: false,
 		rules:{
-			dictType:{
-				minlength: 5,
-				remote: {
-					url: prefix + "/checkDictTypeUnique",
-					type: "post",
-					dataType: "json",
-					data: {
-						name : function() {
-							return $.common.trim($("#dictType").val());
-						}
-					},
-					dataFilter: function(data, type) {
-						return $.validate.unique(data);
-					}
-				}
+			minPsLength:{ positiveinteger:true,
+				max:14
 			},
+			maxPsLength:{ positiveinteger:true,
+				max:14
+			},
+			changePeriod:{ positiveinteger:true,
+				max:999
+			},
+			allowWrongCount:{ positiveinteger:true,
+				max:999
+			}
 		},
 		messages: {
-			"dictType": {
-				remote: "该字典类型已经存在"
-			}
+			minPsLength:{ positiveinteger:"请输入自然数"},
+			maxPsLength:{ positiveinteger:"请输入自然数"},
+			changePeriod:{ positiveinteger:"请输入自然数"},
+			allowWrongCount:{ positiveinteger:"请输入自然数"}
 		},
 		focusCleanup: true
 	});
@@ -86,7 +89,18 @@
 		if ($.validate.form()) {
 			$.operate.save(prefix + "/add", $('#form-password-add').serialize());
 		}
-	}
+	};
+
+	$("#minPsLength").change(function(){
+		$("#maxPsLength").val('');
+	});
+
+	$("#maxPsLength").change(function(){
+		if(Number($("#maxPsLength").val()) < Number($("#minPsLength").val())){
+			$.modal.alertWarning("密码最长长度必须大于最短长度");
+			return;
+		}
+	});
 </script>
 </body>
 </html>

@@ -51,6 +51,11 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
 		<include refid="selectJobVo"/>
 		where job_id = #{jobId}
 	</select>
+
+	<select id="selectJobByGroup" parameterType="String" resultMap="SysJobResult">
+		<include refid="selectJobVo"/>
+		where job_group = #{jobGroup}
+	</select>
 	
 	<delete id="deleteJobById" parameterType="Long">
  		delete from sys_job where job_id = #{jobId}

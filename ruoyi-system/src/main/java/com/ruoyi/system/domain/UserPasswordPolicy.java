@@ -15,6 +15,9 @@ public class UserPasswordPolicy extends BaseEntity {
     @Excel(name = "过期时间")
     private Date lastPasswordUpdate;
 
+    @Excel(name = "锁定事件")
+    private Date lockTime;
+
     public Long getUserId() {
         return userId;
     }
@@ -29,5 +32,13 @@ public class UserPasswordPolicy extends BaseEntity {
 
     public void setLastPasswordUpdate(Date lastPasswordUpdate) {
         this.lastPasswordUpdate = lastPasswordUpdate;
+    }
+
+    public Date getLockTime() {
+        return lockTime;
+    }
+
+    public void setLockTime(Date lockTime) {
+        this.lockTime = lockTime;
     }
 }
