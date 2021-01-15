@@ -17,7 +17,7 @@ import java.security.SecureRandom;
  * @create 2020-12-17 15:55
  */
 
-public class Des {
+public class DesUtils {
     private final static String DES = "DES";
 
     /**
@@ -28,8 +28,13 @@ public class Des {
      * @return
      * @throws Exception
      */
-    public static String encrypt(String data, String key) throws Exception {
-        byte[] bt = encrypt(data.getBytes(), key.getBytes());
+    public static String encrypt(String data, String key) {
+        byte[] bt = new byte[0];
+        try {
+            bt = encrypt(data.getBytes(), key.getBytes());
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
         String strs = new BASE64Encoder().encode(bt);
         return strs;
     }
@@ -43,13 +48,22 @@ public class Des {
      * @throws IOException
      * @throws Exception
      */
-    public static String decrypt(String data, String key) throws IOException,
-            Exception {
+    public static String decrypt(String data, String key) {
         if (data == null)
             return null;
         BASE64Decoder decoder = new BASE64Decoder();
-        byte[] buf = decoder.decodeBuffer(data);
-        byte[] bt = decrypt(buf, key.getBytes());
+        byte[] buf = new byte[0];
+        byte[] bt = new byte[0];
+        try {
+            buf = decoder.decodeBuffer(data);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        try {
+            bt = decrypt(buf, key.getBytes());
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
         return new String(bt);
     }
 

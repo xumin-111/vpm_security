@@ -1,11 +1,13 @@
 package com.ruoyi.web.controller.system;
 
+import com.ruoyi.common.annotation.Log;
 import com.ruoyi.common.core.controller.BaseController;
 import com.ruoyi.common.core.domain.AjaxResult;
 import com.ruoyi.common.core.domain.Ztree;
 import com.ruoyi.common.core.page.PageDomain;
 import com.ruoyi.common.core.page.TableDataInfo;
 import com.ruoyi.common.core.page.TableSupport;
+import com.ruoyi.common.enums.BusinessType;
 import com.ruoyi.common.utils.StringUtils;
 import com.ruoyi.system.domain.*;
 import com.ruoyi.system.service.ISysContextService;
@@ -48,6 +50,7 @@ public class SysContextController extends BaseController {
 
     /**
      * 权限列表
+     *
      * @param access
      * @return
      */
@@ -77,11 +80,11 @@ public class SysContextController extends BaseController {
         }
         //todo dumpling每次获取列表时判断文件生成时间
 
-        List<Access> accessList = contextService.getAccessList(access,exportPath+"/"+fileName);
+        List<Access> accessList = contextService.getAccessList(access, exportPath + "/" + fileName);
         PageDomain pageDomain = TableSupport.buildPageRequest();
         Integer pageNum = pageDomain.getPageNum();
         Integer pageSize = pageDomain.getPageSize();
-        List pageList = accessList.stream().skip(pageSize*(pageNum-1)).limit(pageSize).collect(Collectors.toList());
+        List pageList = accessList.stream().skip(pageSize * (pageNum - 1)).limit(pageSize).collect(Collectors.toList());
 
         TableDataInfo rspData = new TableDataInfo();
         rspData.setCode(0);
@@ -112,16 +115,18 @@ public class SysContextController extends BaseController {
     /**
      * 修改上下文
      */
-    @GetMapping("/editContext/{contextId}")
-    public String editContext(@PathVariable("contextId") String contextId, ModelMap mmap) {
+    @GetMapping("/editContext/{contextName}")
+    public String editContext(@PathVariable("contextName") String contextName, ModelMap mmap) {
+        System.out.println("contextName=========" + contextName);
+        String[] contextNameArr = contextName.split("\\.");
         Project project = new Project();
-        project.setProjectNumber("project001");
+        project.setProjectNumber(contextNameArr[2]);
         mmap.put("project", project);
         SysRole sysRole = new SysRole();
-        sysRole.setRoleName("role001");
+        sysRole.setRoleName(contextNameArr[0]);
         mmap.put("role", sysRole);
         Organization organization = new Organization();
-        organization.setDepartmentNumber("dept001");
+        organization.setDepartmentNumber(contextNameArr[1]);
         mmap.put("organization", organization);
         //mmap.put("user", userService.selectUserById(userId));
         //mmap.put("roles", roleService.selectRolesByUserId(userId));
@@ -132,6 +137,7 @@ public class SysContextController extends BaseController {
 
     /**
      * 修改权限时展示权限列表
+     *
      * @return
      */
     @PostMapping("/accessList/{contextId}")
@@ -143,17 +149,17 @@ public class SysContextController extends BaseController {
             fileName = exportFile.getName();
             //>20min 删除
         }
-        if(StringUtils.isEmpty(fileName)){
+        if (StringUtils.isEmpty(fileName)) {
             //调用cmd生成
         }
         //todo dumpling每次获取列表时判断文件生成时间
         Access access = new Access();
         access.setContextName(contextId);
-        List<Access> accessList = contextService.getAccessList(access,exportPath+"/"+fileName);
+        List<Access> accessList = contextService.getAccessList(access, exportPath + "/" + fileName);
         PageDomain pageDomain = TableSupport.buildPageRequest();
         Integer pageNum = pageDomain.getPageNum();
         Integer pageSize = pageDomain.getPageSize();
-        List pageList = accessList.stream().skip(pageSize*(pageNum-1)).limit(pageSize).collect(Collectors.toList());
+        List pageList = accessList.stream().skip(pageSize * (pageNum - 1)).limit(pageSize).collect(Collectors.toList());
 
         TableDataInfo rspData = new TableDataInfo();
         rspData.setCode(0);
@@ -174,11 +180,11 @@ public class SysContextController extends BaseController {
             fileName = exportFile.getName();
             //>20min 删除
         }
-        if(StringUtils.isEmpty(fileName)){
+        if (StringUtils.isEmpty(fileName)) {
             //调用cmd生成
         }
         //初始化所有下拉菜单内容
-        contextService.initAllCtxSelect(exportPath+"/"+fileName);
+        contextService.initAllCtxSelect(exportPath + "/" + fileName);
         VpmContext vpmContext = contextService.getContextByName(contextId);
         mmap.put("context", vpmContext);
         return prefix + "/editAccess";
@@ -195,11 +201,11 @@ public class SysContextController extends BaseController {
             fileName = exportFile.getName();
             //>20min 删除
         }
-        if(StringUtils.isEmpty(fileName)){
+        if (StringUtils.isEmpty(fileName)) {
             //调用cmd生成
         }
         //初始化所有下拉菜单内容
-        contextService.initAllCtxSelect(exportPath+"/"+fileName);
+        contextService.initAllCtxSelect(exportPath + "/" + fileName);
         return prefix + "/addAccess";
     }
 
@@ -211,90 +217,88 @@ public class SysContextController extends BaseController {
     //@Log(title = "用户管理", businessType = BusinessType.INSERT)
     @PostMapping("/addAccess")
     @ResponseBody
-    public AjaxResult addAccessSave(@Validated Access access)
-    {
+    public AjaxResult addAccessSave(@Validated Access access) {
         File file = new File(exportPath);
         String fileName = "";
         for (File exportFile : file.listFiles()) {
             fileName = exportFile.getName();
             //>20min 删除
         }
-        if(StringUtils.isEmpty(fileName)){
+        if (StringUtils.isEmpty(fileName)) {
             //调用cmd生成
         }
         Access accessParam = new Access();
         accessParam.setContextName(access.getContextName());
-        List<Access> accessList = contextService.getAccessList(accessParam,exportPath+"/"+fileName);
+        List<Access> accessList = contextService.getAccessList(accessParam, exportPath + "/" + fileName);
         for (Access pri : accessList) {
             String accessType = pri.getAccessType();
             String actionGroup = pri.getActionGroup();
             String dataGroup = pri.getDataGroup();
             boolean flag = false;
-            if(StringUtils.isEmpty(dataGroup) && StringUtils.isEmpty(access.getDataGroup())){
+            if (StringUtils.isEmpty(dataGroup) && StringUtils.isEmpty(access.getDataGroup())) {
                 flag = true;
-            }else if(dataGroup!=null && access.getDataGroup()!= null && access.getDataGroup().indexOf(dataGroup) != -1){
+            } else if (dataGroup != null && access.getDataGroup() != null && access.getDataGroup().indexOf(dataGroup) != -1) {
                 flag = true;
             }
             boolean typeFlag = false;
-            if(StringUtils.isEmpty(accessType) && StringUtils.isEmpty(access.getAccessType())){
+            if (StringUtils.isEmpty(accessType) && StringUtils.isEmpty(access.getAccessType())) {
                 typeFlag = true;
-            }else if(accessType!=null && access.getAccessType()!= null && access.getAccessType().indexOf(accessType) != -1){
+            } else if (accessType != null && access.getAccessType() != null && access.getAccessType().indexOf(accessType) != -1) {
                 typeFlag = true;
             }
-            if(typeFlag && actionGroup.equals(access.getActionGroup())
-                    && flag){
+            if (typeFlag && actionGroup.equals(access.getActionGroup())
+                    && flag) {
                 return error("新增权限失败，已存在");
             }
         }
-        return toAjax(contextService.insertAccess(access,exportPath,fileName));
+        return toAjax(contextService.insertAccess(access, exportPath, fileName));
     }
 
 
     @PostMapping("/updateAccessSave")
     @ResponseBody
-    public AjaxResult updateAccessSave(@Validated Access access)
-    {
+    public AjaxResult updateAccessSave(@Validated Access access) {
         File file = new File(exportPath);
         String fileName = "";
         for (File exportFile : file.listFiles()) {
             fileName = exportFile.getName();
             //>20min 删除
         }
-        if(StringUtils.isEmpty(fileName)){
+        if (StringUtils.isEmpty(fileName)) {
             //调用cmd生成
         }
         Access accessParam = new Access();
         accessParam.setContextName(access.getContextName());
-        List<Access> accessList = contextService.getAccessList(accessParam,exportPath+"/"+fileName);
+        List<Access> accessList = contextService.getAccessList(accessParam, exportPath + "/" + fileName);
         for (Access pri : accessList) {
             String accessType = pri.getAccessType();
             String actionGroup = pri.getActionGroup();
             String dataGroup = pri.getDataGroup();
             boolean flag = false;
-            if(StringUtils.isEmpty(dataGroup) && StringUtils.isEmpty(access.getDataGroup())){
+            if (StringUtils.isEmpty(dataGroup) && StringUtils.isEmpty(access.getDataGroup())) {
                 flag = true;
-            }else if(dataGroup!=null && access.getDataGroup()!= null && access.getDataGroup().indexOf(dataGroup) != -1){
+            } else if (dataGroup != null && access.getDataGroup() != null && access.getDataGroup().indexOf(dataGroup) != -1) {
                 flag = true;
             }
             boolean typeFlag = false;
-            if(StringUtils.isEmpty(accessType) && StringUtils.isEmpty(access.getAccessType())){
+            if (StringUtils.isEmpty(accessType) && StringUtils.isEmpty(access.getAccessType())) {
                 typeFlag = true;
-            }else if(accessType!=null && access.getAccessType()!= null && access.getAccessType().indexOf(accessType) != -1){
+            } else if (accessType != null && access.getAccessType() != null && access.getAccessType().indexOf(accessType) != -1) {
                 typeFlag = true;
             }
-            if(typeFlag && actionGroup.equals(access.getActionGroup())
-                    && flag){
+            if (typeFlag && actionGroup.equals(access.getActionGroup())
+                    && flag) {
                 return error("新增权限失败，已存在");
             }
         }
-        return toAjax(contextService.insertAccess(access,exportPath,fileName));
+        return toAjax(contextService.insertAccess(access, exportPath, fileName));
     }
 
     /**
      * 新增上下文保存
      */
     //@RequiresPermissions("system:user:add")
-    //@Log(title = "用户管理", businessType = BusinessType.INSERT)
+    @Log(title = "新增上下文", businessType = BusinessType.INSERT, actionType = "上下文")
     @PostMapping("/add")
     @ResponseBody
     public AjaxResult addContextSave(@Validated VpmContext vpmContext) {
@@ -307,7 +311,7 @@ public class SysContextController extends BaseController {
         if (StringUtils.isEmpty(fileName)) {
             //调用cmd生成
         }
-        vpmContext.setContextName(vpmContext.getContextRole() + ";" + vpmContext.getContextOrganization() + ";" + vpmContext.getContextProject());
+        vpmContext.setContextName(vpmContext.getContextRole() + "." + vpmContext.getContextOrganization() + "." + vpmContext.getContextProject());
         List<VpmContext> contextList = contextService.getContextList(vpmContext, exportPath + "/" + fileName);
         for (VpmContext pri : contextList) {
             String contextName = pri.getContextName();
@@ -318,7 +322,7 @@ public class SysContextController extends BaseController {
                 flag = true;
             }
             if (flag) {
-                return error("新增上下文失败失败，已存在");
+                return error("新增上下文 " + contextName + " 失败，已存在");
             }
         }
         return toAjax(contextService.insertContext(vpmContext, exportPath, fileName));
@@ -338,11 +342,11 @@ public class SysContextController extends BaseController {
             fileName = exportFile.getName();
             //>20min 删除
         }
-        if(StringUtils.isEmpty(fileName)){
+        if (StringUtils.isEmpty(fileName)) {
             //调用cmd生成
         }
         //初始化所有下拉菜单内容
-        contextService.initAllCtxSelect(exportPath+"/"+fileName);
+        contextService.initAllCtxSelect(exportPath + "/" + fileName);
         return prefix + "/createAccess";
     }
 
@@ -350,8 +354,7 @@ public class SysContextController extends BaseController {
      * 选择操作树
      */
     @GetMapping("/selectProcessTree")
-    public String selectProcessTree()
-    {
+    public String selectProcessTree() {
         return prefix + "/tree";
     }
 
@@ -360,21 +363,38 @@ public class SysContextController extends BaseController {
      */
     @GetMapping("/treeData")
     @ResponseBody
-    public List<Ztree> treeData()
-    {
+    public List<Ztree> treeData() {
         List<Ztree> ztrees = contextService.selectProcessTree(null);
+        return ztrees;
+    }
+
+    /**
+     * 选择人员
+     */
+    @GetMapping("/selectPersonTree")
+    public String selectPersonTree() {
+        return prefix + "/personTree";
+    }
+
+    /**
+     * 加载人员操作列表树
+     */
+    @GetMapping("/personTreeData")
+    @ResponseBody
+    public List<Ztree> personTreeData() {
+        List<Ztree> ztrees = contextService.selectPersonTree(null);
         return ztrees;
     }
 
     @GetMapping("/getVpmType")
     @ResponseBody
-    public List<Map> getVpmType(){
+    public List<Map> getVpmType() {
         return contextService.getVpmType();
     }
 
     @GetMapping("/getVpmDataGroup")
     @ResponseBody
-    public List<DataGroup> getVpmDataGroup(){
+    public List<DataGroup> getVpmDataGroup() {
         return contextService.getVpmDataGroup();
     }
 
@@ -382,23 +402,19 @@ public class SysContextController extends BaseController {
     //@Log(title = "用户管理", businessType = BusinessType.DELETE)
     @PostMapping("/remove")
     @ResponseBody
-    public AjaxResult removeAccess(String ids)
-    {
-        try
-        {
+    public AjaxResult removeAccess(String ids) {
+        try {
             File file = new File(exportPath);
             String fileName = "";
             for (File exportFile : file.listFiles()) {
                 fileName = exportFile.getName();
                 //>20min 删除
             }
-            if(StringUtils.isEmpty(fileName)){
+            if (StringUtils.isEmpty(fileName)) {
                 //调用cmd生成
             }
-            return toAjax(contextService.deleteAccess(ids,exportPath,fileName));
-        }
-        catch (Exception e)
-        {
+            return toAjax(contextService.deleteAccess(ids, exportPath, fileName));
+        } catch (Exception e) {
             return error(e.getMessage());
         }
     }

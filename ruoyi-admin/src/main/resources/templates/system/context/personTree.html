@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="zh" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <th:block th:include="include :: header('人员选择')"/>
+    <th:block th:include="include :: ztree-css"/>
+</head>
+<style>
+    body {
+        height: auto;
+        font-family: "Microsoft YaHei";
+    }
+
+    button {
+        font-family: "SimSun", "Helvetica Neue", Helvetica, Arial;
+    }
+</style>
+<body class="hold-transition box box-main">
+<input id="treeId" name="treeId" type="hidden"/>
+<input id="treeName" name="treeName" type="hidden"/>
+<div class="wrapper">
+    <div class="treeShowHideButton" onclick="$.tree.toggleSearch();">
+        <label id="btnShow" title="显示搜索" style="display:none;">︾</label>
+        <label id="btnHide" title="隐藏搜索">︽</label>
+    </div>
+    <div class="treeSearchInput" id="search">
+        <label for="keyword">关键字：</label><input type="text" class="empty" id="keyword" maxlength="50">
+        <button class="btn" id="btn" onclick="$.tree.searchNode()"> 搜索</button>
+    </div>
+    <div class="treeExpandCollapse">
+        <a href="#" onclick="$.tree.expand()">展开</a> /
+        <a href="#" onclick="$.tree.collapse()">折叠</a>
+    </div>
+    <div id="tree" class="ztree treeselect"></div>
+</div>
+<th:block th:include="include :: footer"/>
+<th:block th:include="include :: ztree-js"/>
+<script th:inline="javascript">
+    $(function () {
+        var url = ctx + "system/context/personTreeData";
+        var options = {
+            url: url,
+            expandLevel: 1,
+            onCheck: zonCheck
+        };
+        $.checkboxTree.init(options);
+    });
+
+    function zonCheck(event, treeId, treeNode) {
+        var treeId = treeNode.pId;
+        var treeName = treeNode.name;
+        var oldTreeId = $("#treeId").val();
+        var oldTreeName = $("#treeName").val();
+        if (oldTreeName == "") {
+            $("#treeId").val(treeId);
+            $("#treeName").val(treeName);
+        } else {
+            var oldTreeIdArr = oldTreeId.split(";");
+            var oldTreeNameArr = oldTreeName.split(";");
+            var j = 0;
+            var newOldId = "";
+            var newOldTreeName = "";
+            for (var i = 0; i < oldTreeNameArr.length; i++) {
+                if (oldTreeNameArr[i] == treeName) {
+                    j = i;
+                }
+            }
+            if (j == 0) {
+                newOldId = oldTreeId + ";" + treeId;
+                newOldTreeName = oldTreeName + ";" + treeName;
+            } else {
+                for (var i = 0; i < oldTreeNameArr.length; i++) {
+                    if (oldTreeNameArr[i] != treeName) {
+                        if (newOldTreeName == "") {
+                            newOldId += oldTreeIdArr[i];
+                            newOldTreeName += oldTreeNameArr[i];
+                        } else {
+                            newOldId = newOldId + ";" + oldTreeIdArr[i];
+                            newOldTreeName = newOldTreeName + ";" + oldTreeNameArr[i];
+                        }
+                    }
+                }
+            }
+            $("#treeId").val(newOldId);
+            $("#treeName").val(newOldTreeName);
+        }
+    }
+</script>
+</body>
+</html>

@@ -124,9 +124,9 @@
         //$.operate.add();
     }
 
-    function editContext(contextId) {
+    function editContext(contextName) {
         table.set();
-        var url = prefix + "/editContext/"+contextId
+        var url = prefix + "/editContext/"+contextName;
         $.modal.open("修改上下文", url);
     }
 

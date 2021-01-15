@@ -132,5 +132,4 @@ xss:
 ctxFile:
   #exportPath: D:/ruoyi/exportPath
   exportPath: E:/vpmContext
-  importPath: D:/vpmSecurity/importPath
-  batchPath: D:/vpmSecurity/passwordPolicy
+  importPath: D:/ruoyi/importPath

@@ -36,7 +36,7 @@ public class AllGradeController extends BaseController {
     @Autowired
     private ISysPasswordPolicyService iSysPasswordPolicyService;
 
-    //@RequiresPermissions("system:allgrade:view")
+    @RequiresPermissions("system:allgrade:view")
     @GetMapping()
     public String allGrade(ModelMap mmap){
         mmap.put("policy", iSysPasswordPolicyService.checkPasswordPolicyUnique(new SysPasswordPolicy()));
