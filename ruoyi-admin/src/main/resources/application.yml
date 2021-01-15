@@ -133,4 +133,4 @@ ctxFile:
   #exportPath: D:/ruoyi/exportPath
   exportPath: E:/vpmContext
   importPath: D:/ruoyi/importPath
-  batchPath: D:\vpmSecurity\passwordPolicy
+  batchPath: D:/vpmSecurity/importPath
